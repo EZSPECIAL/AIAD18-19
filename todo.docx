@@ -1,0 +1,6 @@
+Runtime rt = Runtime.instance();
+Profile p = new ProfileImpl();
+
+ContainerController cc = rt.createAgentContainer(p);
+AgentController ag1 = cc.createNewAgent("nome", "classe", args);
+ag1.start();
