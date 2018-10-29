@@ -1,0 +1,21 @@
+-----------------------------------
+               TODO
+-----------------------------------
+
+ - car / park property random generator
+ - config file
+ - negotiate 2 agents
+    - car agents (max cost tolerated, max distance tolerated, acceptable spot types, hours needed)
+    - cost dictated by hour and spot type
+ - add different car personalities
+
+-----------------------------------
+          USEFUL CODE
+-----------------------------------
+
+Runtime rt = Runtime.instance();
+Profile p = new ProfileImpl();
+
+ContainerController cc = rt.createAgentContainer(p);
+AgentController ag1 = cc.createNewAgent("nome", "classe", args);
+ag1.start();
