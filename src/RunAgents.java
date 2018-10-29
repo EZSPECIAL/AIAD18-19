@@ -1,11 +1,19 @@
 import jade.core.Runtime;
+
+import java.io.IOException;
+
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.wrapper.*;
 
 public class RunAgents {
 
-	public static void main(String[] args) {
+	private static final String CONFIG_NAME = "config.csv";
+	
+	public static void main(String[] args) throws IOException {
+		
+		ConfigParser.readConfig("./" + CONFIG_NAME);
+		ConfigParser.printConfig();
 		
 		Runtime rt = Runtime.instance();
 		Profile mainProfile = new ProfileImpl();
