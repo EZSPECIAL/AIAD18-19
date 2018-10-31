@@ -116,7 +116,7 @@ public class ConfigParser {
 		
 		Logger logger = Logger.getInstance();
 		
-		logger.logPrint("CONFIG FILE PRINT");
+		logger.logPrint(System.lineSeparator() + "CONFIG FILE PRINT START");
 		logger.logPrint("Number of car agents: " + numCarAgents);
 		logger.logPrint("Number of parking lot agents: " + numParkingLots);
 		logger.logPrint("World size: " + worldSize[0] + "x" + worldSize[1]);
@@ -135,6 +135,7 @@ public class ConfigParser {
 		logger.logPrint("Parking lot hourly cost upper bound: " + lotHourlyCostUpperBound);
 		logger.logPrint("Parking lot luxury spot cost percent: " + lotLuxurySpotCostPercent + "%");
 		logger.logPrint("Regular: " + regularSpot + " Luxury: " + luxurySpot + " Handicap: " + handicapSpot);
+		logger.logPrint("CONFIG FILE PRINT END" + System.lineSeparator());
 	}
 	
 	/**
