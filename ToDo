@@ -2,12 +2,11 @@
                TODO
 -----------------------------------
 
- - car / park property random generator
- - config file
- - negotiate 2 agents
-    - car agents (max cost tolerated, max distance tolerated, acceptable spot types, hours needed)
-    - cost dictated by hour and spot type
- - add different car personalities
+ - create car agents with config values
+ - create park agents with config values
+ - handle communication N cars to N parks
+ - add negotiation rules
+ - add car behaviours
 
 -----------------------------------
           USEFUL CODE

@@ -1,2 +1,20 @@
-# car max cost lower / car max cost upper / car max distance lower / car max distance upper / regular-luxury-handicap spot booleans
-2, 5, 1, 10, 111
+# 0  - number of starting car agents
+# 1  - number of parking lots
+# 2  - world size X
+# 3  - world size Y
+# 4  - car max hourly cost lower
+# 5  - car max hourly cost upper
+# 6  - car max distance lower
+# 7  - car max distance upper
+# 8  - car hours needed lower
+# 9  - car hours needed upper
+# 10 - parking lot spots lower
+# 11 - parking lot spots upper
+# 12 - parking lot regular spot %
+# 13 - parking lot luxury spot %
+# 14 - parking lot handicap spot %
+# 15 - parking lot hourly cost lower
+# 16 - parking lot hourly cost upper
+# 17 - parking lot luxury spot additional cost %
+# 18 - regular-luxury-handicap spot booleans
+10, 2, 25, 20, 1, 5, 5, 10, 1, 3, 50, 100, 90, 5, 5, 1, 5, 150, 111

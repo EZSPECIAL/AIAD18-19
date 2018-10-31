@@ -12,8 +12,20 @@ public class RunAgents {
 	
 	public static void main(String[] args) throws IOException {
 		
+		// Init logging
+		Logger.getInstance().initLog(Logger.LogMethod.BOTH);
+		
+		// Parse config file
 		ConfigParser.readConfig("./" + CONFIG_NAME);
 		ConfigParser.printConfig();
+		
+		// Create agents with randomized parameters
+		createAgents();
+	}
+
+	// TODO comment
+	// TODO generate agents from config parameters
+	private static void createAgents() {
 		
 		Runtime rt = Runtime.instance();
 		Profile mainProfile = new ProfileImpl();
@@ -30,13 +42,14 @@ public class RunAgents {
 		agentArgs[0] = reference;
 		
 		try {
-			AgentController agent = container.createNewAgent("ParkingLot", "ParkingLotAgent", agentArgs);
-			agent.start();
+			AgentController parkAgent = container.createNewAgent("ParkingLot", "ParkingLotAgent", agentArgs);
+			AgentController carAgent = container.createNewAgent("Car", "CarAgent", agentArgs);
+			parkAgent.start();
+			carAgent.start();
 		} catch (StaleProxyException e) {
 			e.printStackTrace();
-			System.out.println("Exception creating agent!");
+			System.err.println("Exception creating agent!");
 			System.exit(1);
 		}
 	}
-
 }
