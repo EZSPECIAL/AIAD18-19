@@ -2,8 +2,9 @@
                TODO
 -----------------------------------
 
- - create car agents with config values
+ - pass car agent randomised values to car agent
  - create park agents with config values
+ - create randomised coords for cars/parking lots
  - handle communication N cars to N parks
  - add negotiation rules
  - add car behaviours
