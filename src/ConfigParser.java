@@ -28,27 +28,41 @@ public class ConfigParser {
 	private static final int enabledSpotTypesI = 18;
 	
 	// Configuration parameters
-	public static int numCarAgents;
-	public static int numParkingLots;
-	public static int[] worldSize = new int[2];
-	public static int carMaxHourlyCostLowerBound;
-	public static int carMaxHourlyCostUpperBound;
-	public static int carMaxDistanceLowerBound;
-	public static int carMaxDistanceUpperBound;
-	public static int carHoursNeededLowerBound;
-	public static int carHoursNeededUpperBound;
-	public static int lotSpotsLowerBound;
-	public static int lotSpotsUpperBound;
-	public static int lotRegularSpotPercent;
-	public static int lotLuxurySpotPercent;
-	public static int lotHandicapSpotPercent;
-	public static int lotHourlyCostLowerBound;
-	public static int lotHourlyCostUpperBound;
-	public static int lotLuxurySpotCostPercent;
-	public static boolean regularSpot;
-	public static boolean luxurySpot;
-	public static boolean handicapSpot;
+	public int numCarAgents;
+	public int numParkingLots;
+	public int[] worldSize = new int[2];
+	public int carMaxHourlyCostLowerBound;
+	public int carMaxHourlyCostUpperBound;
+	public int carMaxDistanceLowerBound;
+	public int carMaxDistanceUpperBound;
+	public int carHoursNeededLowerBound;
+	public int carHoursNeededUpperBound;
+	public int lotSpotsLowerBound;
+	public int lotSpotsUpperBound;
+	public int lotRegularSpotPercent;
+	public int lotLuxurySpotPercent;
+	public int lotHandicapSpotPercent;
+	public int lotHourlyCostLowerBound;
+	public int lotHourlyCostUpperBound;
+	public int lotLuxurySpotCostPercent;
+	public boolean regularSpot;
+	public boolean luxurySpot;
+	public boolean handicapSpot;
 
+	private static ConfigParser singleton = new ConfigParser();
+	
+	/**
+	 * Private constructor for singleton pattern.
+	 */
+	private ConfigParser() {}
+	
+	/**
+	 * @return the singleton instance of the class
+	 */
+	public static ConfigParser getInstance( ) {
+		return singleton;
+	}
+	
 	/**
 	 * Uses the provided filepath as a config file to read agent parameters from.
 	 * The parsed information is stored in a number of variables which can be later
@@ -56,7 +70,7 @@ public class ConfigParser {
 	 * 
 	 * @param filepath the filepath to use as config file
 	 */
-	public static void readConfig(String filepath) throws IOException {
+	public void readConfig(String filepath) throws IOException {
 		
 		File file = new File(filepath); 
 
@@ -112,11 +126,11 @@ public class ConfigParser {
 	/**
 	 * Prints the config parameters read from the config file. Must be called after {@link #readConfig(String) readConfig} method.
 	 */
-	public static void printConfig() {
+	public void printConfig() {
 		
 		Logger logger = Logger.getInstance();
 		
-		logger.logPrint(System.lineSeparator() + "CONFIG FILE PRINT START");
+		logger.logPrint("CONFIG FILE PRINT START");
 		logger.logPrint("Number of car agents: " + numCarAgents);
 		logger.logPrint("Number of parking lot agents: " + numParkingLots);
 		logger.logPrint("World size: " + worldSize[0] + "x" + worldSize[1]);
@@ -144,7 +158,7 @@ public class ConfigParser {
 	 * @param numS string to parse as integer
 	 * @return integer value parsed from the string provided
 	 */
-	private static int configToInt(String numS) {
+	private int configToInt(String numS) {
 		
 		int num = 0;
 		try {
