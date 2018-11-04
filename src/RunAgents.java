@@ -1,5 +1,6 @@
 import jade.core.Runtime;
 
+import java.awt.Point;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
@@ -11,7 +12,9 @@ import jade.wrapper.*;
 public class RunAgents {
 
 	private static final String CONFIG_NAME = "config.csv";
-	
+	private static final ArrayList<Point> parkingLotCoords = new ArrayList<Point>();
+	private static final ArrayList<Point> carCoords = new ArrayList<Point>();
+
 	public static void main(String[] args) throws IOException {
 		
 		// Init logging
@@ -26,7 +29,6 @@ public class RunAgents {
 	}
 
 	// TODO comment
-	// TODO generate agents from config parameters
 	private static void createAgents() {
 		
 		Runtime rt = Runtime.instance();
@@ -38,25 +40,29 @@ public class RunAgents {
 		// Connects non main container to main container at port 1099
 		ContainerController container = rt.createAgentContainer(agentProfile);
 		
-		// Create agent and pass it reference to Object
-		Object reference = new Object();
-		Object agentArgs[] = new Object[1];
-		agentArgs[0] = reference;
-		
-		// Generate agent arguments
-		// TODO implement in agent constructor
-		ArrayList<Integer> carArgs = generateCarAgent();
-		ArrayList<Integer> parkingLotArgs = generateParkingLotAgent();
-		logCarAgent(carArgs);
-		logParkingLotAgent(parkingLotArgs);
-		
-		// TODO loop
+		// TODO
 		int numCarAgents = ConfigParser.getInstance().numCarAgents;
 		int numParkingLots = ConfigParser.getInstance().numParkingLots;
 		
+		// Generate car agent arguments
+		ArrayList<Integer> carArgs = generateCarAgent();
+		
+		Object[] carArgsObj = new Object[carArgs.size()];
+		for(int i = 0; i < carArgs.size(); i++) {
+			carArgsObj[i] = carArgs.get(i);
+		}
+		
+		// Generate parking lot agent arguments
+		ArrayList<Integer> parkingLotArgs = generateParkingLotAgent();
+		
+		Object[] parkingLotArgsObj = new Object[parkingLotArgs.size()];
+		for(int i = 0; i < parkingLotArgs.size(); i++) {
+			parkingLotArgsObj[i] = parkingLotArgs.get(i);
+		}
+		
 		try {
-			AgentController parkAgent = container.createNewAgent("ParkingLot", "ParkingLotAgent", agentArgs);
-			AgentController carAgent = container.createNewAgent("Car", "CarAgent", agentArgs);
+			AgentController parkAgent = container.createNewAgent("ParkingLot", "ParkingLotAgent", parkingLotArgsObj);
+			AgentController carAgent = container.createNewAgent("Car", "CarAgent", carArgsObj);
 			parkAgent.start();
 			carAgent.start();
 		} catch (StaleProxyException e) {
@@ -66,17 +72,39 @@ public class RunAgents {
 		}
 	}
 	
-	// TODO comment
-	// TODO world coords
+	/**
+	 * Generates arguments for a car agent based on the ranges read from a config file.
+	 * World coordinate populating is done by checking whether the coordinates collide, no attempt
+	 * at giving reasonable space between agent locations is done.
+	 * 
+	 * @return ArrayList of generated values
+	 */
 	private static ArrayList<Integer> generateCarAgent() {
 		
 		ArrayList<Integer> args = new ArrayList<Integer>();
 		Random r = new Random();
 		ConfigParser config = ConfigParser.getInstance();
 		
+		// Select random world coordinates within bounds
+		Point coords = new Point();
+		int lBound, hBound;
+		do {
+			lBound = 0;
+			hBound = config.worldSize[0];
+			coords.x = generateBetweenBounds(r, lBound, hBound);
+			
+			lBound = 0;
+			hBound = config.worldSize[1];
+			coords.y = generateBetweenBounds(r, lBound, hBound);
+		} while(carCoords.contains(coords) || parkingLotCoords.contains(coords));
+		
+		args.add(coords.x);
+		args.add(coords.y);
+		carCoords.add(coords);
+		
 		// Select max hourly cost tolerated by car agents
-		int lBound = config.carMaxHourlyCostLowerBound;
-		int hBound = config.carMaxHourlyCostUpperBound + 1;
+		lBound = config.carMaxHourlyCostLowerBound;
+		hBound = config.carMaxHourlyCostUpperBound + 1;
 		args.add(generateBetweenBounds(r, lBound, hBound));
 		
 		// Select max distance tolerated by car agents
@@ -105,17 +133,39 @@ public class RunAgents {
 		return args;
 	}
 	
-	// TODO comment
-	// TODO world coords
+	/**
+	 * Generates arguments for a parking lot agent based on the ranges read from a config file.
+	 * World coordinate populating is done by checking whether the coordinates collide, no attempt
+	 * at giving reasonable space between agent locations is done.
+	 * 
+	 * @return ArrayList of generated values
+	 */
 	private static ArrayList<Integer> generateParkingLotAgent() {
 	
 		ArrayList<Integer> args = new ArrayList<Integer>();
 		Random r = new Random();
 		ConfigParser config = ConfigParser.getInstance();
 		
+		// Select random world coordinates within bounds
+		Point coords = new Point();
+		int lBound, hBound;
+		do {
+			lBound = 0;
+			hBound = config.worldSize[0];
+			coords.x = generateBetweenBounds(r, lBound, hBound);
+			
+			lBound = 0;
+			hBound = config.worldSize[1];
+			coords.y = generateBetweenBounds(r, lBound, hBound);
+		} while(carCoords.contains(coords) || parkingLotCoords.contains(coords));
+		
+		args.add(coords.x);
+		args.add(coords.y);
+		parkingLotCoords.add(coords);
+		
 		// Select number of available parking spots
-		int lBound = config.lotSpotsLowerBound;
-		int hBound = config.lotSpotsUpperBound + 1;
+		lBound = config.lotSpotsLowerBound;
+		hBound = config.lotSpotsUpperBound + 1;
 		args.add(generateBetweenBounds(r, lBound, hBound));
 		
 		// Add spot distribution
@@ -139,28 +189,15 @@ public class RunAgents {
 		return args;
 	}
 	
-	// TODO comment
-	private static void logCarAgent(ArrayList<Integer> args) {
-		
-		Logger logger = Logger.getInstance();
-		
-		logger.logPrint("CAR AGENT ARGS START");
-		logger.logPrint("Max hourly cost: " + args.get(0));
-		logger.logPrint("Max distance: " + args.get(1));
-		logger.logPrint("Hours needed: " + args.get(2));
-		logger.logPrint("Regular: " + ((args.get(3) != 0) ? false : true) + " Luxury: " + ((args.get(4) != 0) ? false : true) + " Handicap: " + ((args.get(5) != 0) ? false : true));
-		logger.logPrint("CAR AGENT ARGS END");
-	}
-	
-	// TODO comment
-	private static void logParkingLotAgent(ArrayList<Integer> args) {
-		
-		Logger logger = Logger.getInstance();
-		
-		
-	}
-	
-	// TODO comment
+	/**
+	 * Generates a pseudorandom integer between the provided bounds.
+	 * Lower bound inclusive, upper bound exclusive.
+	 * 
+	 * @param r pseudorandom number generator
+	 * @param lBound lower bound to use
+	 * @param hBound upper bound to use
+	 * @return a random integer value between the specified bounds
+	 */
 	private static int generateBetweenBounds(Random r, int lBound, int hBound) {
 		return r.nextInt(hBound - lBound) + lBound;
 	}

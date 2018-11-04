@@ -2,20 +2,10 @@
                TODO
 -----------------------------------
 
- - pass car agent randomised values to car agent
- - create park agents with config values
- - create randomised coords for cars/parking lots
- - handle communication N cars to N parks
+ - fix parking lot parameters
+ - agent communication queue
  - add negotiation rules
+ - sanity check config file
  - add car behaviours
-
------------------------------------
-          USEFUL CODE
------------------------------------
-
-Runtime rt = Runtime.instance();
-Profile p = new ProfileImpl();
-
-ContainerController cc = rt.createAgentContainer(p);
-AgentController ag1 = cc.createNewAgent("nome", "classe", args);
-ag1.start();
+ - add bartering
+ - better world coords
