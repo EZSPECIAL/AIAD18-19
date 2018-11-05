@@ -18,17 +18,13 @@ public class ParkingLotAgent extends Agent {
 	private static final int handicapSpotI = 10;
 	
 	// Parking lot parameters
-	// TODO breakdown spots
 	private Point coords;
 	private int spots;
-	private int regularPercent;
-	private int luxuryPercent;
-	private int handicapPercent;
+	private int regularSpots;
+	private int luxurySpots;
+	private int handicapSpots;
 	private int hourlyCost;
 	private int luxuryCostPercent;
-	private boolean regularSpot;
-	private boolean luxurySpot;
-	private boolean handicapSpot;
 	
 	public void setup() {
 		
@@ -49,14 +45,52 @@ public class ParkingLotAgent extends Agent {
 		// Assign values
 		coords = new Point((int) args[coordsXI], (int) args[coordsYI]);
 		spots = (int) args[spotsI];
-		regularPercent = (int) args[regularPercentI];
-		luxuryPercent = (int) args[luxuryPercentI];
-		handicapPercent = (int) args[handicapPercentI];
 		hourlyCost = (int) args[hourlyCostI];
 		luxuryCostPercent = (int) args[luxuryCostPercentI];
-		regularSpot = ((int) args[regularSpotI] != 0) ? false : true;
-		luxurySpot = ((int) args[luxurySpotI] != 0) ? false : true;
-		handicapSpot = ((int) args[handicapSpotI] != 0) ? false : true;
+		
+		// Calculate number of spots per spot type
+		boolean regularSpot = ((int) args[regularSpotI] != 0) ? true : false;
+		boolean luxurySpot = ((int) args[luxurySpotI] != 0) ? true : false;
+		boolean handicapSpot = ((int) args[handicapSpotI] != 0) ? true : false;
+		
+		float leftOverPercent = 0;
+		int spotTypes = 0;
+		
+		if(regularSpot) {
+			spotTypes++;
+		} else leftOverPercent += (int) args[regularPercentI];
+
+		if(luxurySpot) {
+			spotTypes++;
+		} else leftOverPercent += (int) args[luxuryPercentI];
+		
+		if(handicapSpot) {
+			spotTypes++;
+		} else leftOverPercent += (int) args[handicapPercentI];
+		
+		// Split leftover between the remaining 2 spot types
+		if(spotTypes == 2) leftOverPercent = leftOverPercent / 2.0f;
+		
+		int spots = (int) args[spotsI];
+		if(regularSpot) {
+			regularSpots = (int) Math.round(spots * ((int) args[regularPercentI] + leftOverPercent) / 100.0f);
+		}
+		
+		if(luxurySpot) {
+			luxurySpots = (int) Math.round(spots * ((int) args[luxuryPercentI] + leftOverPercent) / 100.0f);
+		}
+		
+		if(handicapSpot) {
+			handicapSpots = (int) Math.round(spots * ((int) args[handicapPercentI] + leftOverPercent) / 100.0f);
+		}
+		
+		// Fix rounding errors
+		int roundError = regularSpots + luxurySpots + handicapSpots - spots;
+		if(roundError > 0) {
+			if(regularSpot) regularSpots -= roundError;
+			else if(luxurySpot) luxurySpots -= roundError;
+			else if(handicapSpot) handicapSpots -= roundError;
+		}
 	}
 	
 	/**
@@ -69,10 +103,9 @@ public class ParkingLotAgent extends Agent {
 		logger.logPrint("PARKING LOT ARGS START");
 		logger.logPrint("Coords: (" + coords.x + ", " + coords.y + ")");
 		logger.logPrint("Available spots: " + spots);
-		logger.logPrint("Regular %: " + regularPercent + " Luxury %: " + luxuryPercent + " Handicap %: " + handicapPercent);
+		logger.logPrint("Regular: " + regularSpots + " Luxury: " + luxurySpots + " Handicap: " + handicapSpots);
 		logger.logPrint("Hourly cost: " + hourlyCost);
 		logger.logPrint("Luxury cost modifier: " + luxuryCostPercent);
-		logger.logPrint("Regular: " + regularSpot + " Luxury: " + luxurySpot + " Handicap: " + handicapSpot);
 		logger.logPrint("PARKING LOT ARGS END" + System.lineSeparator());
 	}
 }

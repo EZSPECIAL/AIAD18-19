@@ -12,9 +12,15 @@ import jade.wrapper.*;
 public class RunAgents {
 
 	private static final String CONFIG_NAME = "config.csv";
-	private static final ArrayList<Point> parkingLotCoords = new ArrayList<Point>();
-	private static final ArrayList<Point> carCoords = new ArrayList<Point>();
-
+	private static final int regularSpotI = 5;
+	private static final int luxurySpotI = 6;
+	private static final int handicapSpotI = 7;
+	
+	private static ArrayList<Point> parkingLotCoords = new ArrayList<Point>();
+	private static ArrayList<Point> carCoords = new ArrayList<Point>();
+	private static ArrayList<AgentController> parkingLotAgents = new ArrayList<AgentController>();
+	private static ArrayList<AgentController> carAgents = new ArrayList<AgentController>();
+	
 	public static void main(String[] args) throws IOException {
 		
 		// Init logging
@@ -35,40 +41,61 @@ public class RunAgents {
 		Profile mainProfile = new ProfileImpl();
 		Profile agentProfile = new ProfileImpl();
 		
-		ContainerController mainContainer = rt.createMainContainer(mainProfile);
+		rt.createMainContainer(mainProfile);
 		
 		// Connects non main container to main container at port 1099
 		ContainerController container = rt.createAgentContainer(agentProfile);
 		
-		// TODO
-		int numCarAgents = ConfigParser.getInstance().numCarAgents;
-		int numParkingLots = ConfigParser.getInstance().numParkingLots;
-		
-		// Generate car agent arguments
-		ArrayList<Integer> carArgs = generateCarAgent();
-		
-		Object[] carArgsObj = new Object[carArgs.size()];
-		for(int i = 0; i < carArgs.size(); i++) {
-			carArgsObj[i] = carArgs.get(i);
-		}
-		
-		// Generate parking lot agent arguments
-		ArrayList<Integer> parkingLotArgs = generateParkingLotAgent();
-		
-		Object[] parkingLotArgsObj = new Object[parkingLotArgs.size()];
-		for(int i = 0; i < parkingLotArgs.size(); i++) {
-			parkingLotArgsObj[i] = parkingLotArgs.get(i);
-		}
-		
 		try {
-			AgentController parkAgent = container.createNewAgent("ParkingLot", "ParkingLotAgent", parkingLotArgsObj);
-			AgentController carAgent = container.createNewAgent("Car", "CarAgent", carArgsObj);
-			parkAgent.start();
-			carAgent.start();
+			createCarAgents(container);
+			createParkingLotAgents(container);
+			
+			for(AgentController agent : parkingLotAgents) {
+				agent.start();
+			}
+			
+			for(AgentController agent : carAgents) {
+				agent.start();
+			}
+			
 		} catch (StaleProxyException e) {
 			e.printStackTrace();
 			System.err.println("Exception creating agent!");
 			System.exit(1);
+		}
+	}
+	
+	// TODO comment
+	private static void createCarAgents(ContainerController container) throws StaleProxyException {
+		
+		for(int i = 0; i < ConfigParser.getInstance().numCarAgents; i++) {
+			
+			// Generate car agent arguments
+			ArrayList<Integer> carArgs = generateCarAgent();
+			
+			Object[] carArgsObj = new Object[carArgs.size()];
+			for(int j = 0; j < carArgs.size(); j++) {
+				carArgsObj[j] = carArgs.get(j);
+			}
+
+			carAgents.add(container.createNewAgent("Car" + carAgents.size(), "CarAgent", carArgsObj));
+		}
+	}
+	
+	// TODO comment
+	private static void createParkingLotAgents(ContainerController container) throws StaleProxyException {
+		
+		for(int i = 0; i < ConfigParser.getInstance().numParkingLots; i++) {
+			
+			// Generate car agent arguments
+			ArrayList<Integer> parkingLotArgs = generateParkingLotAgent();
+			
+			Object[] parkingLotArgsObj = new Object[parkingLotArgs.size()];
+			for(int j = 0; j < parkingLotArgs.size(); j++) {
+				parkingLotArgsObj[j] = parkingLotArgs.get(j);
+			}
+
+			parkingLotAgents.add(container.createNewAgent("ParkingLot" + parkingLotAgents.size(), "ParkingLotAgent", parkingLotArgsObj));
 		}
 	}
 	
@@ -118,17 +145,35 @@ public class RunAgents {
 		args.add(generateBetweenBounds(r, lBound, hBound));
 		
 		// Select spot types car agent desires
+		int spotTypesSelected = 0;
 		if(config.regularSpot) {
-			args.add(generateBetweenBounds(r, 0, 2));
+			int val = generateBetweenBounds(r, 0, 2);
+			spotTypesSelected += val;
+			args.add(val);
 		} else args.add(0);
 		
 		if(config.luxurySpot) {
-			args.add(generateBetweenBounds(r, 0, 2));
+			int val = generateBetweenBounds(r, 0, 2);
+			spotTypesSelected += val;
+			args.add(val);
 		} else args.add(0);
 		
 		if(config.handicapSpot) {
-			args.add(generateBetweenBounds(r, 0, 2));
+			int val = generateBetweenBounds(r, 0, 2);
+			spotTypesSelected += val;
+			args.add(val);
 		} else args.add(0);
+
+		// Force spot type if randomiser selected none
+		if(spotTypesSelected == 0) {
+			if(config.regularSpot) {
+				args.set(regularSpotI, 1);
+			} else if(config.luxurySpot) {
+				args.set(luxurySpotI, 1);
+			} else if(config.handicapSpot) {
+				args.set(handicapSpotI, 1);
+			}
+		}
 		
 		return args;
 	}
@@ -182,9 +227,9 @@ public class RunAgents {
 		args.add(config.lotLuxurySpotCostPercent);
 		
 		// Select available spot types
-		args.add(config.regularSpot ? 0 : 1);
-		args.add(config.luxurySpot ? 0 : 1);
-		args.add(config.handicapSpot ? 0 : 1);
+		args.add(config.regularSpot ? 1 : 0);
+		args.add(config.luxurySpot ? 1 : 0);
+		args.add(config.handicapSpot ? 1 : 0);
 		
 		return args;
 	}

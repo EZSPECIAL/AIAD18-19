@@ -44,9 +44,9 @@ public class CarAgent extends Agent {
 		maxHourlyCost = (int) args[maxHourlyCostI];
 		maxDistance = (int) args[maxDistanceI];
 		hoursNeeded = (int) args[hoursNeededI];
-		regularSpot = ((int) args[regularSpotI] != 0) ? false : true;
-		luxurySpot = ((int) args[luxurySpotI] != 0) ? false : true;
-		handicapSpot = ((int) args[handicapSpotI] != 0) ? false : true;
+		regularSpot = ((int) args[regularSpotI] != 0) ? true : false;
+		luxurySpot = ((int) args[luxurySpotI] != 0) ? true : false;
+		handicapSpot = ((int) args[handicapSpotI] != 0) ? true : false;
 	}
 	
 	/**

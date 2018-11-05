@@ -2,9 +2,9 @@
                TODO
 -----------------------------------
 
- - fix parking lot parameters
  - agent communication queue
  - add negotiation rules
+ - simulate hours to vacate parking lot
  - sanity check config file
  - add car behaviours
  - add bartering
