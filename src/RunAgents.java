@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import jade.core.Profile;
 import jade.core.ProfileImpl;
@@ -16,10 +17,14 @@ public class RunAgents {
 	private static final int luxurySpotI = 6;
 	private static final int handicapSpotI = 7;
 	
+	// Car agent / Parking lot agent world information
 	private static ArrayList<Point> parkingLotCoords = new ArrayList<Point>();
 	private static ArrayList<Point> carCoords = new ArrayList<Point>();
 	private static ArrayList<AgentController> parkingLotAgents = new ArrayList<AgentController>();
 	private static ArrayList<AgentController> carAgents = new ArrayList<AgentController>();
+	
+	// Queue of cars awaiting negotiation
+	private static LinkedBlockingQueue<String> waitingCars = new LinkedBlockingQueue<String>();
 	
 	public static void main(String[] args) throws IOException {
 		
@@ -34,7 +39,10 @@ public class RunAgents {
 		createAgents();
 	}
 
-	// TODO comment
+	/**
+	 * Creates and starts all the agents of the program. Generates car and parking lot agents
+	 * with randomised values before starting all of them.
+	 */
 	private static void createAgents() {
 		
 		Runtime rt = Runtime.instance();
@@ -58,14 +66,18 @@ public class RunAgents {
 				agent.start();
 			}
 			
-		} catch (StaleProxyException e) {
+		} catch(StaleProxyException e) {
 			e.printStackTrace();
 			System.err.println("Exception creating agent!");
 			System.exit(1);
 		}
 	}
 	
-	// TODO comment
+	/**
+	 * Creates a car agent with randomised parameters and adds it to the queue.
+	 * 
+	 * @param container agent container to create agent in
+	 */
 	private static void createCarAgents(ContainerController container) throws StaleProxyException {
 		
 		for(int i = 0; i < ConfigParser.getInstance().numCarAgents; i++) {
@@ -78,11 +90,17 @@ public class RunAgents {
 				carArgsObj[j] = carArgs.get(j);
 			}
 
-			carAgents.add(container.createNewAgent("Car" + carAgents.size(), "CarAgent", carArgsObj));
+			int carID = carAgents.size();
+			carAgents.add(container.createNewAgent("Car" + carID, "CarAgent", carArgsObj));
+			waitingCars.add("Car" + carID);
 		}
 	}
 	
-	// TODO comment
+	/**
+	 * Creates a parking lot agent with randomised parameters.
+	 * 
+	 * @param container agent container to create agent in
+	 */
 	private static void createParkingLotAgents(ContainerController container) throws StaleProxyException {
 		
 		for(int i = 0; i < ConfigParser.getInstance().numParkingLots; i++) {
@@ -245,5 +263,25 @@ public class RunAgents {
 	 */
 	private static int generateBetweenBounds(Random r, int lBound, int hBound) {
 		return r.nextInt(hBound - lBound) + lBound;
+	}
+
+	/**
+	 * @return the parking lot agents
+	 */
+	public static ArrayList<AgentController> getParkingLotAgents() {
+		return parkingLotAgents;
+	}
+	/**
+	 * @return the car agents
+	 */
+	public static ArrayList<AgentController> getCarAgents() {
+		return carAgents;
+	}
+
+	/**
+	 * @return the cars queueing up for a parking spot
+	 */
+	public static LinkedBlockingQueue<String> getWaitingCars() {
+		return waitingCars;
 	}
 }

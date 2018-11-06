@@ -2,10 +2,10 @@
                TODO
 -----------------------------------
 
- - agent communication queue
  - add negotiation rules
  - simulate hours to vacate parking lot
  - sanity check config file
  - add car behaviours
- - add bartering
  - better world coords
+ - populate world with new cars
+ - iterated contract net

@@ -1,9 +1,18 @@
 import java.awt.Point;
 
 import jade.core.Agent;
+import jade.domain.FIPANames;
+import jade.domain.FIPAAgentManagement.FailureException;
+import jade.domain.FIPAAgentManagement.NotUnderstoodException;
+import jade.domain.FIPAAgentManagement.RefuseException;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
+import jade.proto.ContractNetResponder;
 
 public class ParkingLotAgent extends Agent {
 
+	private static final long serialVersionUID = -144714414530581727L;
+	
 	// Parking lot agent argument indices
 	private static final int coordsXI = 0;
 	private static final int coordsYI = 1;
@@ -28,10 +37,58 @@ public class ParkingLotAgent extends Agent {
 	
 	public void setup() {
 		
-		// TODO
-		Logger.getInstance().logPrint("I'm a parking lot");
+		Logger.getInstance().logPrint("I'm " + this.getAID().getLocalName());
 		this.initArgs();
 		this.logParkingLotAgent();
+		this.contractNetRespond();
+	}
+	
+	// TODO comment
+	private void contractNetRespond() {
+		
+		MessageTemplate template = MessageTemplate.and(
+				MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET),
+				MessageTemplate.MatchPerformative(ACLMessage.CFP) );
+
+		// TODO can divide?
+		addBehaviour(new ContractNetResponder(this, template) {
+			
+			private static final long serialVersionUID = -2669446996431458326L;
+
+			@Override
+			protected ACLMessage handleCfp(ACLMessage cfp) throws NotUnderstoodException, RefuseException {
+				
+				System.out.println("Agent "+getLocalName()+": CFP received from "+cfp.getSender().getName()+". Action is "+cfp.getContent());
+				int proposal = 3;
+				if(proposal > 2) {
+					// We provide a proposal
+					System.out.println("Agent "+getLocalName()+": Proposing "+proposal);
+					ACLMessage propose = cfp.createReply();
+					propose.setPerformative(ACLMessage.PROPOSE);
+					propose.setContent(String.valueOf(proposal));
+					return propose;
+				}
+				else {
+					// We refuse to provide a proposal
+					System.out.println("Agent "+getLocalName()+": Refuse");
+					throw new RefuseException("evaluation-failed");
+				}
+			}
+
+			@Override
+			protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose,ACLMessage accept) throws FailureException {
+				
+				System.out.println("Agent "+getLocalName()+": Proposal accepted");
+
+				ACLMessage inform = accept.createReply();
+				inform.setPerformative(ACLMessage.INFORM);
+				return inform;
+			}
+
+			protected void handleRejectProposal(ACLMessage cfp, ACLMessage propose, ACLMessage reject) {
+				System.out.println("Agent "+getLocalName()+": Proposal rejected");
+			}
+		} );
 	}
 	
 	/**
