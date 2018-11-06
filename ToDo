@@ -2,10 +2,13 @@
                TODO
 -----------------------------------
 
- - add negotiation rules
- - simulate hours to vacate parking lot
+ - set content in cfp
+ - parking lot: check cfp
+ - parking lot: send proposal
+ - car: evaluate proposals
+ - end negotiation
  - sanity check config file
- - add car behaviours
+ - add different car behaviours
  - better world coords
  - populate world with new cars
  - iterated contract net

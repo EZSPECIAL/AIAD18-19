@@ -1,15 +1,12 @@
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Enumeration;
-import java.util.Vector;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import jade.core.AID;
 import jade.core.Agent;
 import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
-import jade.proto.ContractNetInitiator;
 import jade.wrapper.AgentController;
 import jade.wrapper.StaleProxyException;
 
@@ -77,8 +74,10 @@ public class CarAgent extends Agent {
 
 		Logger.getInstance().logPrint("my turn");
 	}
-	
-	// TODO comment
+
+	/**
+	 * Initiates a ContractNetInitiator to start negotiation with the parking lots.
+	 */
 	private void contractNetInitiate() throws StaleProxyException, InterruptedException {
 		
 		// Wait for turn
@@ -89,7 +88,6 @@ public class CarAgent extends Agent {
 		
 		// Add all parking lots as receivers
 		ArrayList<AgentController> parkingLots = RunAgents.getParkingLotAgents();
-		
 		for(AgentController agent : parkingLots) {
 			msg.addReceiver(new AID(agent.getName(), AID.ISGUID));
 		}
@@ -97,81 +95,9 @@ public class CarAgent extends Agent {
 		// Message protocol and content
 		msg.setProtocol(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET);
 		msg.setReplyByDate(new Date(System.currentTimeMillis() + 10000));
-		msg.setContent("hello parking");
+		msg.setContent("hello parking"); // TODO cfp content
 
-		// TODO can divide?
-		addBehaviour(new ContractNetInitiator(this, msg) {
-			
-			private static final long serialVersionUID = 8330790807988522110L;
-
-			protected void handlePropose(ACLMessage propose, Vector v) {
-				System.out.println("Agent "+propose.getSender().getName()+" proposed "+propose.getContent());
-			}
-			
-			protected void handleRefuse(ACLMessage refuse) {
-				System.out.println("Agent "+refuse.getSender().getName()+" refused");
-			}
-			
-			protected void handleFailure(ACLMessage failure) {
-				if(failure.getSender().equals(myAgent.getAMS())) {
-					// FAILURE notification from the JADE runtime: the receiver
-					// does not exist
-					System.out.println("Responder does not exist");
-				}
-				else {
-					System.out.println("Agent "+failure.getSender().getName()+" failed");
-				}
-				// Immediate failure --> we will not receive a response from this agent
-			}
-			
-			protected void handleAllResponses(Vector responses, Vector acceptances) {
-
-				// Evaluate proposals.
-				int bestProposal = -1;
-				AID bestProposer = null;
-				ACLMessage accept = null;
-				Enumeration e = responses.elements();
-				while (e.hasMoreElements()) {
-					ACLMessage msg = (ACLMessage) e.nextElement();
-					if (msg.getPerformative() == ACLMessage.PROPOSE) {
-						ACLMessage reply = msg.createReply();
-						reply.setPerformative(ACLMessage.REJECT_PROPOSAL);
-						acceptances.addElement(reply);
-						int proposal = Integer.parseInt(msg.getContent());
-						if (proposal > bestProposal) {
-							bestProposal = proposal;
-							bestProposer = msg.getSender();
-							accept = reply;
-						}
-					}
-				}
-				// Accept the proposal of the best proposer
-				if(accept != null) {
-					System.out.println("Accepting proposal "+bestProposal+" from responder "+bestProposer.getName());
-					accept.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
-				}						
-			}
-			
-			protected void handleInform(ACLMessage inform) {
-				System.out.println("Agent "+inform.getSender().getName()+" successfully performed the requested action");
-				
-				LinkedBlockingQueue<String> queue = RunAgents.getWaitingCars();
-				
-				// Remove head from queue since it was the agent that just negotiated
-				try {
-					queue.take();
-				} catch(InterruptedException e) {
-					e.printStackTrace();
-					System.err.println("Thread interrupted!");
-					System.exit(1);
-				}
-				
-				// Notify all threads waiting for queue
-				synchronized(queue) {
-					queue.notifyAll();
-				}
-			}
-		});
+		addBehaviour(new StrictCarBehavior(this, msg));
 	}
 	
 	/**

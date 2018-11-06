@@ -1,17 +1,18 @@
 import java.awt.Point;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import jade.core.Agent;
 import jade.domain.FIPANames;
-import jade.domain.FIPAAgentManagement.FailureException;
-import jade.domain.FIPAAgentManagement.NotUnderstoodException;
-import jade.domain.FIPAAgentManagement.RefuseException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import jade.proto.ContractNetResponder;
 
 public class ParkingLotAgent extends Agent {
 
+	public enum SpotType {REGULAR, LUXURY, HANDICAP};
+	
 	private static final long serialVersionUID = -144714414530581727L;
+	private static final int numThreads = 50;
 	
 	// Parking lot agent argument indices
 	private static final int coordsXI = 0;
@@ -35,60 +36,26 @@ public class ParkingLotAgent extends Agent {
 	private int hourlyCost;
 	private int luxuryCostPercent;
 	
+	private ConcurrentHashMap<String, SpotType> occupiedSpots = new ConcurrentHashMap<String, SpotType>(16, 0.9f, 1);
+	private static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(numThreads);
+	
 	public void setup() {
-		
-		Logger.getInstance().logPrint("I'm " + this.getAID().getLocalName());
+
 		this.initArgs();
 		this.logParkingLotAgent();
 		this.contractNetRespond();
 	}
 	
-	// TODO comment
+	/**
+	 * Initiates a ContractNetResponder to handle requests from car agents.
+	 */
 	private void contractNetRespond() {
 		
 		MessageTemplate template = MessageTemplate.and(
 				MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET),
-				MessageTemplate.MatchPerformative(ACLMessage.CFP) );
+				MessageTemplate.MatchPerformative(ACLMessage.CFP));
 
-		// TODO can divide?
-		addBehaviour(new ContractNetResponder(this, template) {
-			
-			private static final long serialVersionUID = -2669446996431458326L;
-
-			@Override
-			protected ACLMessage handleCfp(ACLMessage cfp) throws NotUnderstoodException, RefuseException {
-				
-				System.out.println("Agent "+getLocalName()+": CFP received from "+cfp.getSender().getName()+". Action is "+cfp.getContent());
-				int proposal = 3;
-				if(proposal > 2) {
-					// We provide a proposal
-					System.out.println("Agent "+getLocalName()+": Proposing "+proposal);
-					ACLMessage propose = cfp.createReply();
-					propose.setPerformative(ACLMessage.PROPOSE);
-					propose.setContent(String.valueOf(proposal));
-					return propose;
-				}
-				else {
-					// We refuse to provide a proposal
-					System.out.println("Agent "+getLocalName()+": Refuse");
-					throw new RefuseException("evaluation-failed");
-				}
-			}
-
-			@Override
-			protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose,ACLMessage accept) throws FailureException {
-				
-				System.out.println("Agent "+getLocalName()+": Proposal accepted");
-
-				ACLMessage inform = accept.createReply();
-				inform.setPerformative(ACLMessage.INFORM);
-				return inform;
-			}
-
-			protected void handleRejectProposal(ACLMessage cfp, ACLMessage propose, ACLMessage reject) {
-				System.out.println("Agent "+getLocalName()+": Proposal rejected");
-			}
-		} );
+		addBehaviour(new ParkingLotBehavior(this, template));
 	}
 	
 	/**
@@ -164,5 +131,61 @@ public class ParkingLotAgent extends Agent {
 		logger.logPrint("Hourly cost: " + hourlyCost);
 		logger.logPrint("Luxury cost modifier: " + luxuryCostPercent);
 		logger.logPrint("PARKING LOT ARGS END" + System.lineSeparator());
+	}
+
+	/**
+	 * @return the regular spot number
+	 */
+	public int getRegularSpots() {
+		return regularSpots;
+	}
+
+	/**
+	 * @return the luxury spot number
+	 */
+	public int getLuxurySpots() {
+		return luxurySpots;
+	}
+
+	/**
+	 * @return the handicap spot number
+	 */
+	public int getHandicapSpots() {
+		return handicapSpots;
+	}
+
+	/**
+	 * @return the occupied spots map
+	 */
+	public ConcurrentHashMap<String, SpotType> getOccupiedSpots() {
+		return occupiedSpots;
+	}
+
+	/**
+	 * @return the executor service
+	 */
+	public static ScheduledThreadPoolExecutor getExecutor() {
+		return executor;
+	}
+
+	/**
+	 * @param regularSpots the regular spot number to set
+	 */
+	public void setRegularSpots(int regularSpots) {
+		this.regularSpots = regularSpots;
+	}
+
+	/**
+	 * @param luxurySpots the luxury spot number to set
+	 */
+	public void setLuxurySpots(int luxurySpots) {
+		this.luxurySpots = luxurySpots;
+	}
+
+	/**
+	 * @param handicapSpots the handicap spot number to set
+	 */
+	public void setHandicapSpots(int handicapSpots) {
+		this.handicapSpots = handicapSpots;
 	}
 }
