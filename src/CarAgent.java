@@ -1,4 +1,5 @@
 import java.awt.Point;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -50,6 +51,10 @@ public class CarAgent extends Agent {
 			e.printStackTrace();
 			System.err.println("Thread interrupted!");
 			System.exit(1);
+		} catch(IOException e) {
+			e.printStackTrace();
+			System.err.println("I/O Exception in car agent!");
+			System.exit(1);
 		}
 	}
 	
@@ -78,7 +83,7 @@ public class CarAgent extends Agent {
 	/**
 	 * Initiates a ContractNetInitiator to start negotiation with the parking lots.
 	 */
-	private void contractNetInitiate() throws StaleProxyException, InterruptedException {
+	private void contractNetInitiate() throws StaleProxyException, InterruptedException, IOException {
 		
 		// Wait for turn
 		checkQueue();
@@ -95,7 +100,23 @@ public class CarAgent extends Agent {
 		// Message protocol and content
 		msg.setProtocol(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET);
 		msg.setReplyByDate(new Date(System.currentTimeMillis() + 10000));
-		msg.setContent("hello parking"); // TODO cfp content
+		
+		// Build desired spot types array
+		ArrayList<ParkingLotAgent.SpotType> desiredSpotsList = new ArrayList<ParkingLotAgent.SpotType>();
+		if(regularSpot) {
+			desiredSpotsList.add(ParkingLotAgent.SpotType.REGULAR);
+		}
+		if(luxurySpot) {
+			desiredSpotsList.add(ParkingLotAgent.SpotType.LUXURY);
+		}
+		if(handicapSpot) {
+			desiredSpotsList.add(ParkingLotAgent.SpotType.HANDICAP);
+		}
+		
+		ParkingLotAgent.SpotType[] desiredSpots = desiredSpotsList.toArray(new ParkingLotAgent.SpotType[0]);
+		
+		// Set proposal parameters
+		msg.setContentObject(new CarAgentProposal(coords, maxHourlyCost, maxDistance, hoursNeeded, desiredSpots));
 
 		addBehaviour(new StrictCarBehavior(this, msg));
 	}

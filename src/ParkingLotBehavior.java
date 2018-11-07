@@ -6,6 +6,7 @@ import jade.domain.FIPAAgentManagement.NotUnderstoodException;
 import jade.domain.FIPAAgentManagement.RefuseException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.lang.acl.UnreadableException;
 import jade.proto.ContractNetResponder;
 
 public class ParkingLotBehavior extends ContractNetResponder {
@@ -26,7 +27,17 @@ public class ParkingLotBehavior extends ContractNetResponder {
 		// TODO send proposal to car
 		// TODO is car request fulfillable?
 		
-		System.out.println("Agent " + agent.getLocalName() + ": CFP received from "+cfp.getSender().getName()+". Action is "+cfp.getContent());
+		CarAgentProposal carProposal = null;
+		try {
+			carProposal = (CarAgentProposal) cfp.getContentObject();
+		} catch(UnreadableException e) {
+			e.printStackTrace();
+			System.err.println("Error occured during the decoding of the content of the ACLMessage!");
+			System.exit(1);
+		}
+		
+		System.out.println("Agent " + agent.getLocalName() + ": CFP received from " + cfp.getSender().getName() + ". Action is " + carProposal.getHoursNeeded());
+		//System.out.println("Agent " + agent.getLocalName() + ": CFP received from "+cfp.getSender().getName()+". Action is "+cfp.getContent());
 		int proposal = 3;
 		if(proposal > 2) {
 			// We provide a proposal
