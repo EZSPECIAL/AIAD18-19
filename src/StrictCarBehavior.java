@@ -1,3 +1,4 @@
+import java.awt.Point;
 import java.util.Enumeration;
 import java.util.Vector;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -5,6 +6,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 import jade.proto.ContractNetInitiator;
 
@@ -12,9 +14,12 @@ public class StrictCarBehavior extends ContractNetInitiator {
 
 	private static final long serialVersionUID = -7251449437912201891L;
 
+	CarAgent agent;
+	
 	// TODO comment
 	public StrictCarBehavior(Agent a, ACLMessage cfp) {
 		super(a, cfp);
+		this.agent = (CarAgent) a;
 	}
 
 	/**
@@ -60,6 +65,45 @@ public class StrictCarBehavior extends ContractNetInitiator {
 		return parkingLotProposal;
 	}
 	
+	// TODO comment
+	private int evaluateProposal(ACLMessage proposeMsg) {
+		
+		ParkingLotProposal proposal = getParkingLotProposal(proposeMsg);
+		
+		// Check distance to parking lot
+		int dist = distanceToParking(agent.getCoords(), proposal.getCoords());
+		if(dist > agent.getMaxDistance()) {
+			Logger.getInstance().logPrint("Rejecting proposal of " + proposeMsg.getSender().getLocalName() + " because of distance");
+			return 0;
+		}
+		
+		// Verify hourly cost according to spot type desired by car agent, priority is REGULAR -> HANDICAP -> LUXURY
+		int cost = 0;
+		if((agent.isRegularSpot() && proposal.isHasRegular()) ||
+				(agent.isHandicapSpot() && proposal.isHasHandicap())) {
+			cost = proposal.getHourlyCost();
+		} else if(agent.isLuxurySpot() && proposal.isHasLuxury()) {
+			cost = (int) Math.round(proposal.getHourlyCost() * proposal.getLuxuryCostPercent() / 100.0f);
+		}
+		
+		if(cost > agent.getMaxHourlyCost()) {
+			Logger.getInstance().logPrint("Rejecting proposal of " + proposeMsg.getSender().getLocalName() + " because of cost");
+			return 0;
+		}
+		return 1;
+	}
+	
+	/**
+	 * Returns the rounded euclidean distance between 2 points.
+	 * 
+	 * @param carCoords the car agent coordinates
+	 * @param parkingLotCoords the parking lot agent coordinates
+	 * @return the rounded euclidean distance between the 2 agents
+	 */
+	private int distanceToParking(Point carCoords, Point parkingLotCoords) {
+		return (int) carCoords.distance(parkingLotCoords);
+	}
+	
 	@Override
 	protected void handlePropose(ACLMessage propose, Vector v) {
 		
@@ -93,45 +137,48 @@ public class StrictCarBehavior extends ContractNetInitiator {
 	@Override
 	protected void handleAllResponses(Vector responses, Vector acceptances) {
 
-		// TODO evaluate
+		// TODO refactor to override evaluation function only
 		
-		// Evaluate proposals.
+		// Evaluate proposals
 		int bestProposal = -1;
 		AID bestProposer = null;
 		ACLMessage accept = null;
 		Enumeration enumerator = responses.elements();
-		while (enumerator.hasMoreElements()) {
+		
+		while(enumerator.hasMoreElements()) {
+			
 			ACLMessage msg = (ACLMessage) enumerator.nextElement();
-			if (msg.getPerformative() == ACLMessage.PROPOSE) {
+			if(msg.getPerformative() == ACLMessage.PROPOSE) {
+				
 				ACLMessage reply = msg.createReply();
 				reply.setPerformative(ACLMessage.REJECT_PROPOSAL);
 				acceptances.addElement(reply);
+
+				int proposal = evaluateProposal(msg);
 				
-				ParkingLotProposal parkingLotProposal = getParkingLotProposal(msg);
-				
-//				int proposal = Integer.parseInt(msg.getContent());
-				int proposal = 3;
-				if (proposal > bestProposal) {
+				if((proposal != 0) && (proposal > bestProposal)) {
 					bestProposal = proposal;
 					bestProposer = msg.getSender();
 					accept = reply;
 				}
 			}
 		}
+		
 		// Accept the proposal of the best proposer
 		if(accept != null) {
-			System.out.println("Accepting proposal "+bestProposal+" from responder "+bestProposer.getName());
+			Logger.getInstance().logPrint("Accepting proposal of " + bestProposer.getLocalName());
 			accept.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
-		}						
+		// All proposals rejected, exit queue
+		} else {
+			Logger.getInstance().logPrint("Rejected all proposals");
+			removeFromQueue();
+		}
 	}
 	
 	@Override
 	protected void handleInform(ACLMessage inform) {
-		
-		// TODO change inform message
-		
-		System.out.println("Agent " + inform.getSender().getName() + " successfully performed the requested action");
-		
+
+		Logger.getInstance().logPrint("negotiation with " + inform.getSender().getLocalName() + " ended");
 		removeFromQueue();
 	}
 }

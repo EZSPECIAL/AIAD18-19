@@ -2,10 +2,10 @@
                TODO
 -----------------------------------
 
- - car: evaluate proposals
  - car: send best proposal response
+ - test contract net
+ - add different car behaviors
  - sanity check config file
- - add different car behaviours
- - better world coords
  - populate world with new cars
  - iterated contract net
+ - better world coords

@@ -156,4 +156,53 @@ public class CarAgent extends Agent {
 		logger.logPrint("Regular: " + regularSpot + " Luxury: " + luxurySpot + " Handicap: " + handicapSpot);
 		logger.logPrint("CAR AGENT ARGS END" + System.lineSeparator());
 	}
+
+	/**
+	 * @return the car coords
+	 */
+	public Point getCoords() {
+		return coords;
+	}
+
+	/**
+	 * @return the max hourly cost tolerated by the car agent
+	 */
+	public int getMaxHourlyCost() {
+		return maxHourlyCost;
+	}
+
+	/**
+	 * @return the max distance tolerated by the car agent
+	 */
+	public int getMaxDistance() {
+		return maxDistance;
+	}
+
+	/**
+	 * @return the hours needed by the car agent
+	 */
+	public int getHoursNeeded() {
+		return hoursNeeded;
+	}
+
+	/**
+	 * @return whether the car agent desires a regular spot
+	 */
+	public boolean isRegularSpot() {
+		return regularSpot;
+	}
+
+	/**
+	 * @return whether the car agent desires a luxury spot
+	 */
+	public boolean isLuxurySpot() {
+		return luxurySpot;
+	}
+
+	/**
+	 * @return whether the car agent desires an handicap spot
+	 */
+	public boolean isHandicapSpot() {
+		return handicapSpot;
+	}
 }

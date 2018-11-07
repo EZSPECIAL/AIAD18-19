@@ -122,7 +122,6 @@ public class ParkingLotBehavior extends ContractNetResponder {
 		
 		System.out.println("Agent " + agent.getLocalName() + ": Proposal accepted");
 
-		// TODO hardcoded values
 		String proposer = cfp.getSender().getLocalName();
 		
 		agent.getOccupiedSpots().put(proposer, ParkingLotAgent.SpotType.REGULAR);
