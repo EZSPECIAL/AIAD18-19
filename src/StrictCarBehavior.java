@@ -15,6 +15,7 @@ public class StrictCarBehavior extends ContractNetInitiator {
 	private static final long serialVersionUID = -7251449437912201891L;
 
 	CarAgent agent;
+	ParkingLotAgent.SpotType selectedSpot;
 	
 	// TODO comment
 	public StrictCarBehavior(Agent a, ACLMessage cfp) {
@@ -79,11 +80,15 @@ public class StrictCarBehavior extends ContractNetInitiator {
 		
 		// Verify hourly cost according to spot type desired by car agent, priority is REGULAR -> HANDICAP -> LUXURY
 		int cost = 0;
-		if((agent.isRegularSpot() && proposal.isHasRegular()) ||
-				(agent.isHandicapSpot() && proposal.isHasHandicap())) {
+		if(agent.isRegularSpot() && proposal.isHasRegular()) {
 			cost = proposal.getHourlyCost();
+			selectedSpot = ParkingLotAgent.SpotType.REGULAR;
+		} else if(agent.isHandicapSpot() && proposal.isHasHandicap()) {
+			cost = proposal.getHourlyCost();
+			selectedSpot = ParkingLotAgent.SpotType.HANDICAP;
 		} else if(agent.isLuxurySpot() && proposal.isHasLuxury()) {
 			cost = (int) Math.round(proposal.getHourlyCost() * proposal.getLuxuryCostPercent() / 100.0f);
+			selectedSpot = ParkingLotAgent.SpotType.LUXURY;
 		}
 		
 		if(cost > agent.getMaxHourlyCost()) {
@@ -168,6 +173,7 @@ public class StrictCarBehavior extends ContractNetInitiator {
 		if(accept != null) {
 			Logger.getInstance().logPrint("Accepting proposal of " + bestProposer.getLocalName());
 			accept.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
+			accept.setContent(selectedSpot.name());
 		// All proposals rejected, exit queue
 		} else {
 			Logger.getInstance().logPrint("Rejected all proposals");

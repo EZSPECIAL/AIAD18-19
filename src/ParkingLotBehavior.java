@@ -14,6 +14,8 @@ public class ParkingLotBehavior extends ContractNetResponder {
 
 	private static final long serialVersionUID = -3463116286662565961L;
 	
+	private static final int simulatedHours = 5;
+	
 	ParkingLotAgent agent;
 	
 	// TODO comment
@@ -84,19 +86,32 @@ public class ParkingLotBehavior extends ContractNetResponder {
 		return propose;
 	}
 	
-	@Override
-	protected ACLMessage handleCfp(ACLMessage cfp) throws NotUnderstoodException, RefuseException {
-
-		// Get the car agent proposal sent with the cfp
-		CarAgentProposal carProposal = null;
+	/**
+	 * Extracts a car agent proposal object from an ACLMessage sent as cfp.
+	 * 
+	 * @param msg the ACLMessage to get the object from
+	 * @return the car agent proposal
+	 */
+	private CarAgentProposal getCarAgentProposal(ACLMessage msg) {
+		
+		CarAgentProposal carAgentProposal = null;
 		try {
-			carProposal = (CarAgentProposal) cfp.getContentObject();
+			carAgentProposal = (CarAgentProposal) msg.getContentObject();
 		} catch(UnreadableException e) {
 			e.printStackTrace();
 			System.err.println("Error occured during the decoding of the content of the ACLMessage!");
 			System.exit(1);
 		}
 		
+		return carAgentProposal;
+	}
+	
+	@Override
+	protected ACLMessage handleCfp(ACLMessage cfp) throws NotUnderstoodException, RefuseException {
+
+		// Get the car agent proposal sent with the cfp
+		CarAgentProposal carProposal = getCarAgentProposal(cfp);
+
 		// Log the requested spot types
 		String spotTypes = "";
 		for(ParkingLotAgent.SpotType spot : carProposal.getDesiredSpots()) {
@@ -118,17 +133,32 @@ public class ParkingLotBehavior extends ContractNetResponder {
 	@Override
 	protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose, ACLMessage accept) throws FailureException {
 		
-		// TODO car accepted
+		String proposer = accept.getSender().getLocalName();
+		ParkingLotAgent.SpotType desiredSpot = ParkingLotAgent.SpotType.valueOf(accept.getContent());
 		
-		System.out.println("Agent " + agent.getLocalName() + ": Proposal accepted");
-
-		String proposer = cfp.getSender().getLocalName();
+		Logger.getInstance().logPrint(accept.getSender().getLocalName() + " accepted proposal and selected spot type: " + desiredSpot);
 		
-		agent.getOccupiedSpots().put(proposer, ParkingLotAgent.SpotType.REGULAR);
-		agent.setRegularSpots(agent.getRegularSpots() - 1);
+		// Update the occupied spots of the parking lot
+		switch(desiredSpot) {
+		case REGULAR:
+			agent.getOccupiedSpots().put(proposer, ParkingLotAgent.SpotType.REGULAR);
+			agent.setRegularSpots(agent.getRegularSpots() - 1);
+			break;
+		case LUXURY:
+			agent.getOccupiedSpots().put(proposer, ParkingLotAgent.SpotType.LUXURY);
+			agent.setLuxurySpots(agent.getLuxurySpots() - 1);
+			break;
+		case HANDICAP:
+			agent.getOccupiedSpots().put(proposer, ParkingLotAgent.SpotType.HANDICAP);
+			agent.setHandicapSpots(agent.getHandicapSpots() - 1);
+			break;
+		}
 		
-		String timeValue = proposer.replaceAll("\\D+","");
-		ParkingLotAgent.getExecutor().schedule(new ParkingLotTimer((ParkingLotAgent) this.getAgent(), agent.getOccupiedSpots(), proposer), Integer.parseInt(timeValue) + 1, TimeUnit.SECONDS);
+		// Get the hours needed by the car agent
+		CarAgentProposal carProposal = getCarAgentProposal(cfp);
+		
+		// Schedule a timer to restore the occupied spot
+		ParkingLotAgent.getExecutor().schedule(new ParkingLotTimer((ParkingLotAgent) this.getAgent(), agent.getOccupiedSpots(), proposer), carProposal.getHoursNeeded() * simulatedHours, TimeUnit.SECONDS);
 		
 		ACLMessage inform = accept.createReply();
 		inform.setPerformative(ACLMessage.INFORM);
@@ -137,7 +167,6 @@ public class ParkingLotBehavior extends ContractNetResponder {
 
 	@Override
 	protected void handleRejectProposal(ACLMessage cfp, ACLMessage propose, ACLMessage reject) {
-		System.out.println("Agent " + agent.getLocalName() + ": Proposal rejected");
-		// TODO car rejected
+		Logger.getInstance().logPrint(reject.getSender().getLocalName() + " rejected proposal");
 	}
 }

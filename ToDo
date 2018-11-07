@@ -2,8 +2,7 @@
                TODO
 -----------------------------------
 
- - car: send best proposal response
- - test contract net
+ - test proposals / rejections / acceptances
  - add different car behaviors
  - sanity check config file
  - populate world with new cars
