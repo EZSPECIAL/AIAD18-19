@@ -2,10 +2,8 @@
                TODO
 -----------------------------------
 
- - parking lot: check cfp -> reject or send proposal
- - parking lot: send proposal
  - car: evaluate proposals
- - end negotiation
+ - car: send best proposal response
  - sanity check config file
  - add different car behaviours
  - better world coords

@@ -153,6 +153,27 @@ public class ParkingLotAgent extends Agent {
 	public int getHandicapSpots() {
 		return handicapSpots;
 	}
+	
+	/**
+	 * @return the parking lot coords
+	 */
+	public Point getCoords() {
+		return coords;
+	}
+
+	/**
+	 * @return the hourly cost of a spot
+	 */
+	public int getHourlyCost() {
+		return hourlyCost;
+	}
+
+	/**
+	 * @return the cost modifier for luxury spots
+	 */
+	public int getLuxuryCostPercent() {
+		return luxuryCostPercent;
+	}
 
 	/**
 	 * @return the occupied spots map

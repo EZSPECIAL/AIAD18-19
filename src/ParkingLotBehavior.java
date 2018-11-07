@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import jade.core.Agent;
@@ -21,12 +22,72 @@ public class ParkingLotBehavior extends ContractNetResponder {
 		this.agent = (ParkingLotAgent) a;
 	}
 
+	/**
+	 * Checks if at least one of the desired spot types has vacancy in the parking lot.
+	 * 
+	 * @param proposal the car agent proposal object
+	 * @return whether the parking lot as vacancy for the desired spot type
+	 */
+	private boolean checkVacancy(CarAgentProposal proposal) {
+		
+		boolean isVacant = false;
+		
+		for(ParkingLotAgent.SpotType spot : proposal.getDesiredSpots()) {
+			
+			switch(spot) {
+			case REGULAR:
+				if(agent.getRegularSpots() > 0) {
+					isVacant = true;
+				}
+				break;
+			case LUXURY:
+				if(agent.getLuxurySpots() > 0) {
+					isVacant = true;
+				}
+				break;
+			case HANDICAP:
+				if(agent.getHandicapSpots() > 0) {
+					isVacant = true;
+				}
+				break;
+			}
+		}
+		
+		return isVacant;
+	}
+
+	/**
+	 * Builds a reply to a cfp message by sending a content object with all the info needed for negotiation.
+	 * 
+	 * @param cfp the call for proposals received by this agent
+	 * @return the ACLMessage to reply with
+	 */
+	private ACLMessage buildProposal(ACLMessage cfp) {
+		
+		ACLMessage propose = cfp.createReply();
+		propose.setPerformative(ACLMessage.PROPOSE);
+		
+		// Build proposal object
+		boolean hasRegular = agent.getRegularSpots() > 0 ? true : false;
+		boolean hasLuxury = agent.getLuxurySpots() > 0 ? true : false;
+		boolean hasHandicap = agent.getHandicapSpots() > 0 ? true : false;
+		ParkingLotProposal proposalTerms = new ParkingLotProposal(agent.getCoords(), agent.getHourlyCost(), agent.getLuxuryCostPercent(), hasRegular, hasLuxury, hasHandicap);
+		
+		try {
+			propose.setContentObject(proposalTerms);
+		} catch(IOException e) {
+			e.printStackTrace();
+			System.err.println("I/O Exception in parking lot agent!");
+			System.exit(1);
+		}
+		
+		return propose;
+	}
+	
 	@Override
 	protected ACLMessage handleCfp(ACLMessage cfp) throws NotUnderstoodException, RefuseException {
-		
-		// TODO send proposal to car
-		// TODO is car request fulfillable?
-		
+
+		// Get the car agent proposal sent with the cfp
 		CarAgentProposal carProposal = null;
 		try {
 			carProposal = (CarAgentProposal) cfp.getContentObject();
@@ -36,20 +97,21 @@ public class ParkingLotBehavior extends ContractNetResponder {
 			System.exit(1);
 		}
 		
-		System.out.println("Agent " + agent.getLocalName() + ": CFP received from " + cfp.getSender().getName() + ". Action is " + carProposal.getHoursNeeded());
-		//System.out.println("Agent " + agent.getLocalName() + ": CFP received from "+cfp.getSender().getName()+". Action is "+cfp.getContent());
-		int proposal = 3;
-		if(proposal > 2) {
-			// We provide a proposal
-			System.out.println("Agent " + agent.getLocalName() + ": Proposing "+proposal);
-			ACLMessage propose = cfp.createReply();
-			propose.setPerformative(ACLMessage.PROPOSE);
-			propose.setContent(String.valueOf(proposal));
-			return propose;
+		// Log the requested spot types
+		String spotTypes = "";
+		for(ParkingLotAgent.SpotType spot : carProposal.getDesiredSpots()) {
+			spotTypes += spot + " ";
+		}
+		
+		Logger.getInstance().logPrint("Agent " + cfp.getSender().getLocalName() + " requests spot types: " + spotTypes);
+		
+		// Check whether the parking lot has a spot of one of the types requested
+		if(checkVacancy(carProposal)) {
+			Logger.getInstance().logPrint("Proposing to " + cfp.getSender().getLocalName());
+			return buildProposal(cfp);
 		} else {
-			// We refuse to provide a proposal
-			System.out.println("Agent " + agent.getLocalName() + ": Refuse");
-			throw new RefuseException("evaluation-failed");
+			Logger.getInstance().logPrint("Refusing to propose to " + cfp.getSender().getLocalName() + " because no parking spots of the requested type are left");
+			throw new RefuseException("No empty spots left");
 		}
 	}
 

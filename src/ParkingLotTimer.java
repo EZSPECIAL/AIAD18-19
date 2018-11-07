@@ -23,6 +23,7 @@ public class ParkingLotTimer implements Runnable {
 	
 	@Override
 	public void run() {
+		Thread.currentThread().setName(agent.getLocalName() + " Timer");
 		updateSpots();
 	}
 	

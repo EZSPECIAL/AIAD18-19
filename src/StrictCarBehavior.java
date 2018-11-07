@@ -5,6 +5,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.UnreadableException;
 import jade.proto.ContractNetInitiator;
 
 public class StrictCarBehavior extends ContractNetInitiator {
@@ -16,33 +17,77 @@ public class StrictCarBehavior extends ContractNetInitiator {
 		super(a, cfp);
 	}
 
+	/**
+	 * Removes the head of the queue from the waiting cars queue. It should be the
+	 * car that just negotiated. 
+	 */
+	private void removeFromQueue() {
+	
+		LinkedBlockingQueue<String> queue = RunAgents.getWaitingCars();
+		
+		// Remove head from queue since it was the agent that just negotiated
+		try {
+			queue.take();
+		} catch(InterruptedException e) {
+			e.printStackTrace();
+			System.err.println("Thread interrupted!");
+			System.exit(1);
+		}
+		
+		// Notify all threads waiting for queue
+		synchronized(queue) {
+			queue.notifyAll();
+		}
+	}
+	
+	/**
+	 * Extracts a parking lot proposal object from an ACLMessage sent as proposal message.
+	 * 
+	 * @param msg the ACLMessage to get the object from
+	 * @return the parking lot proposal object
+	 */
+	private ParkingLotProposal getParkingLotProposal(ACLMessage msg) {
+		
+		ParkingLotProposal parkingLotProposal = null;
+		try {
+			parkingLotProposal = (ParkingLotProposal) msg.getContentObject();
+		} catch(UnreadableException e) {
+			e.printStackTrace();
+			System.err.println("Error occured during the decoding of the content of the ACLMessage!");
+			System.exit(1);
+		}
+		
+		return parkingLotProposal;
+	}
+	
 	@Override
 	protected void handlePropose(ACLMessage propose, Vector v) {
-		// TODO change propose message
-		System.out.println("Agent " + propose.getSender().getName() + " proposed " + propose.getContent());
+		
+		ParkingLotProposal parkingLotProposal = getParkingLotProposal(propose);
+		
+		Logger.getInstance().logPrint(propose.getSender().getLocalName() + " proposed -" +
+		" coords: (" + parkingLotProposal.getCoords().x + ", " + parkingLotProposal.getCoords().y + ");"
+		+ " hourly cost: " + parkingLotProposal.getHourlyCost() + ";"
+		+ " luxury cost modifier: " + parkingLotProposal.getLuxuryCostPercent() + ";"
+		+ " hasRegular: " + parkingLotProposal.isHasRegular() + ";"
+		+ " hasLuxury: " + parkingLotProposal.isHasLuxury() + ";"
+		+ " hasHandicap: " + parkingLotProposal.isHasHandicap());
 	}
 	
 	@Override
 	protected void handleRefuse(ACLMessage refuse) {
-		// TODO change refuse message
-		// TODO remove from queue
-		System.out.println("Agent " + refuse.getSender().getName() + " refused");
+
+		Logger.getInstance().logPrint(refuse.getSender().getLocalName() + " refused to propose");
+		removeFromQueue();
 	}
 	
 	@Override
 	protected void handleFailure(ACLMessage failure) {
 		
-		// TODO change failure message
-		// TODO remove from queue
+		// TODO can all fail? queue removal won't work
 		
-		if(failure.getSender().equals(myAgent.getAMS())) {
-			// FAILURE notification from the JADE runtime: the receiver
-			// does not exist
-			System.out.println("Responder does not exist");
-		} else {
-			System.out.println("Agent "+failure.getSender().getName()+" failed");
-		}
-		// Immediate failure --> we will not receive a response from this agent
+		if(failure.getSender().equals(myAgent.getAMS())) Logger.getInstance().logPrint("Responder does not exist!");
+		else Logger.getInstance().logPrint(failure.getSender().getLocalName() + " failed!");
 	}
 	
 	@Override
@@ -54,14 +99,18 @@ public class StrictCarBehavior extends ContractNetInitiator {
 		int bestProposal = -1;
 		AID bestProposer = null;
 		ACLMessage accept = null;
-		Enumeration e = responses.elements();
-		while (e.hasMoreElements()) {
-			ACLMessage msg = (ACLMessage) e.nextElement();
+		Enumeration enumerator = responses.elements();
+		while (enumerator.hasMoreElements()) {
+			ACLMessage msg = (ACLMessage) enumerator.nextElement();
 			if (msg.getPerformative() == ACLMessage.PROPOSE) {
 				ACLMessage reply = msg.createReply();
 				reply.setPerformative(ACLMessage.REJECT_PROPOSAL);
 				acceptances.addElement(reply);
-				int proposal = Integer.parseInt(msg.getContent());
+				
+				ParkingLotProposal parkingLotProposal = getParkingLotProposal(msg);
+				
+//				int proposal = Integer.parseInt(msg.getContent());
+				int proposal = 3;
 				if (proposal > bestProposal) {
 					bestProposal = proposal;
 					bestProposer = msg.getSender();
@@ -83,20 +132,6 @@ public class StrictCarBehavior extends ContractNetInitiator {
 		
 		System.out.println("Agent " + inform.getSender().getName() + " successfully performed the requested action");
 		
-		LinkedBlockingQueue<String> queue = RunAgents.getWaitingCars();
-		
-		// Remove head from queue since it was the agent that just negotiated
-		try {
-			queue.take();
-		} catch(InterruptedException e) {
-			e.printStackTrace();
-			System.err.println("Thread interrupted!");
-			System.exit(1);
-		}
-		
-		// Notify all threads waiting for queue
-		synchronized(queue) {
-			queue.notifyAll();
-		}
+		removeFromQueue();
 	}
 }
