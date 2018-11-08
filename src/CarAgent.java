@@ -118,7 +118,7 @@ public class CarAgent extends Agent {
 		// Set proposal parameters
 		msg.setContentObject(new CarAgentProposal(coords, maxHourlyCost, maxDistance, hoursNeeded, desiredSpots));
 
-		addBehaviour(new StrictCarBehavior(this, msg));
+		addBehaviour(new CarBehavior(this, msg));
 	}
 	
 	/**

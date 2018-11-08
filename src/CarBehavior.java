@@ -1,24 +1,28 @@
-import java.awt.Point;
-import java.util.Enumeration;
 import java.util.Vector;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import jade.core.AID;
 import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
-import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 import jade.proto.ContractNetInitiator;
 
-public class StrictCarBehavior extends ContractNetInitiator {
+public class CarBehavior extends ContractNetInitiator {
 
 	private static final long serialVersionUID = -7251449437912201891L;
 
 	CarAgent agent;
-	ParkingLotAgent.SpotType selectedSpot;
-	
-	// TODO comment
-	public StrictCarBehavior(Agent a, ACLMessage cfp) {
+
+	/**
+	 * Constructs a car behaviour responsible for handling the ContractNetInitiator role
+	 * in a FIPA ContractNet protocol. Sends a cfp message signaling the desired spot types
+	 * to which parking lot agents respond with their proposals provided a spot of the desired type
+	 * is available. The car agent then evaluates the proposals and chooses to accept 0 or 1 of them.
+	 * 
+	 * @param a the car agent
+	 * @param cfp the call for proposals message associated with this initiator
+	 */
+	public CarBehavior(Agent a, ACLMessage cfp) {
 		super(a, cfp);
 		this.agent = (CarAgent) a;
 	}
@@ -65,48 +69,25 @@ public class StrictCarBehavior extends ContractNetInitiator {
 		
 		return parkingLotProposal;
 	}
-	
-	// TODO comment
-	private int evaluateProposal(ACLMessage proposeMsg) {
-		
-		ParkingLotProposal proposal = getParkingLotProposal(proposeMsg);
-		
-		// Check distance to parking lot
-		int dist = distanceToParking(agent.getCoords(), proposal.getCoords());
-		if(dist > agent.getMaxDistance()) {
-			Logger.getInstance().logPrint("Rejecting proposal of " + proposeMsg.getSender().getLocalName() + " because of distance");
-			return 0;
-		}
-		
-		// Verify hourly cost according to spot type desired by car agent, priority is REGULAR -> HANDICAP -> LUXURY
-		int cost = 0;
-		if(agent.isRegularSpot() && proposal.isHasRegular()) {
-			cost = proposal.getHourlyCost();
-			selectedSpot = ParkingLotAgent.SpotType.REGULAR;
-		} else if(agent.isHandicapSpot() && proposal.isHasHandicap()) {
-			cost = proposal.getHourlyCost();
-			selectedSpot = ParkingLotAgent.SpotType.HANDICAP;
-		} else if(agent.isLuxurySpot() && proposal.isHasLuxury()) {
-			cost = (int) Math.round(proposal.getHourlyCost() * proposal.getLuxuryCostPercent() / 100.0f);
-			selectedSpot = ParkingLotAgent.SpotType.LUXURY;
-		}
-		
-		if(cost > agent.getMaxHourlyCost()) {
-			Logger.getInstance().logPrint("Rejecting proposal of " + proposeMsg.getSender().getLocalName() + " because of cost");
-			return 0;
-		}
-		return 1;
-	}
-	
+
 	/**
-	 * Returns the rounded euclidean distance between 2 points.
+	 * Selects a spot type by checking which spot types the car agent wants and
+	 * the available ones in a specific parking lot agent.
 	 * 
-	 * @param carCoords the car agent coordinates
-	 * @param parkingLotCoords the parking lot agent coordinates
-	 * @return the rounded euclidean distance between the 2 agents
+	 * @param proposal the parking lot agent proposal
+	 * @return the parking lot spot type enumerator the car agent has chosen
 	 */
-	private int distanceToParking(Point carCoords, Point parkingLotCoords) {
-		return (int) carCoords.distance(parkingLotCoords);
+	private ParkingLotAgent.SpotType selectSpot(ParkingLotProposal proposal) {
+		
+		if(agent.isRegularSpot() && proposal.isHasRegular()) {
+			return ParkingLotAgent.SpotType.REGULAR;
+		} else if(agent.isHandicapSpot() && proposal.isHasHandicap()) {
+			return ParkingLotAgent.SpotType.HANDICAP;
+		} else if(agent.isLuxurySpot() && proposal.isHasLuxury()) {
+			return ParkingLotAgent.SpotType.LUXURY;
+		}
+		
+		return ParkingLotAgent.SpotType.REGULAR;
 	}
 	
 	@Override
@@ -142,28 +123,30 @@ public class StrictCarBehavior extends ContractNetInitiator {
 	@Override
 	protected void handleAllResponses(Vector responses, Vector acceptances) {
 
-		// TODO refactor to override evaluation function only
-		
-		// Evaluate proposals
 		int bestProposal = -1;
+		int bestProposerI = 0;
 		AID bestProposer = null;
 		ACLMessage accept = null;
-		Enumeration enumerator = responses.elements();
 		
-		while(enumerator.hasMoreElements()) {
-			
-			ACLMessage msg = (ACLMessage) enumerator.nextElement();
+		// Evaluate proposals
+		for(int i = 0; i < responses.size(); i++) {
+
+			ACLMessage msg = (ACLMessage) responses.get(i);
 			if(msg.getPerformative() == ACLMessage.PROPOSE) {
 				
 				ACLMessage reply = msg.createReply();
 				reply.setPerformative(ACLMessage.REJECT_PROPOSAL);
 				acceptances.addElement(reply);
 
-				int proposal = evaluateProposal(msg);
+				// TODO other behaviors
+				// TODO change thread name
+				StrictCarEvaluator eval = new StrictCarEvaluator(agent, getParkingLotProposal(msg));
+				int proposal = eval.evaluateProposal(msg);
 				
 				if((proposal != 0) && (proposal > bestProposal)) {
 					bestProposal = proposal;
 					bestProposer = msg.getSender();
+					bestProposerI = i;
 					accept = reply;
 				}
 			}
@@ -173,7 +156,7 @@ public class StrictCarBehavior extends ContractNetInitiator {
 		if(accept != null) {
 			Logger.getInstance().logPrint("Accepting proposal of " + bestProposer.getLocalName());
 			accept.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
-			accept.setContent(selectedSpot.name());
+			accept.setContent(selectSpot(getParkingLotProposal((ACLMessage) responses.get(bestProposerI))).name());
 		// All proposals rejected, exit queue
 		} else {
 			Logger.getInstance().logPrint("Rejected all proposals");

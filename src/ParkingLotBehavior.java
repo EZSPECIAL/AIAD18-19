@@ -17,8 +17,16 @@ public class ParkingLotBehavior extends ContractNetResponder {
 	private static final int simulatedHours = 5;
 	
 	ParkingLotAgent agent;
-	
-	// TODO comment
+
+	/**
+	 * Constructs a parking lot behaviour responsible for handling the ContractNetResponder role
+	 * in a FIPA ContractNet protocol. Waits for a cfp messages, sends a proposal and awaits
+	 * acceptance or rejection of the proposal. A proposal may not be sent if the parking lot has
+	 * no more spots of the requested ones.
+	 * 
+	 * @param a the parking lot agent
+	 * @param mt the message template to use
+	 */
 	public ParkingLotBehavior(Agent a, MessageTemplate mt) {
 		super(a, mt);
 		this.agent = (ParkingLotAgent) a;

@@ -268,13 +268,13 @@ public class RunAgents {
 	/**
 	 * @return the parking lot agents
 	 */
-	public static ArrayList<AgentController> getParkingLotAgents() {
+	public static synchronized ArrayList<AgentController> getParkingLotAgents() {
 		return parkingLotAgents;
 	}
 	/**
 	 * @return the car agents
 	 */
-	public static ArrayList<AgentController> getCarAgents() {
+	public static synchronized ArrayList<AgentController> getCarAgents() {
 		return carAgents;
 	}
 

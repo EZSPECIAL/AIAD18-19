@@ -2,8 +2,8 @@
                TODO
 -----------------------------------
 
+ - add different car behaviors (strict / lower cost / lower distance / mix of both)
  - test proposals / rejections / acceptances
- - add different car behaviors
  - sanity check config file
  - populate world with new cars
  - iterated contract net

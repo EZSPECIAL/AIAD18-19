@@ -35,18 +35,20 @@ public class ParkingLotTimer implements Runnable {
 		// Get spot type to remove and remove it
 		ParkingLotAgent.SpotType spotType = occupiedSpots.get(keyToRemove);
 		occupiedSpots.remove(keyToRemove);
-		Logger.getInstance().logPrint(keyToRemove + " left " + agent.getLocalName());
-		
+
 		// Restore spot of the same type
 		switch(spotType) {
 		case REGULAR:
 			agent.setRegularSpots(agent.getRegularSpots() + 1);
+			Logger.getInstance().logPrint(keyToRemove + " vacated REGULAR spot in " + agent.getLocalName());
 			break;
 		case LUXURY:
 			agent.setLuxurySpots(agent.getLuxurySpots() + 1);
+			Logger.getInstance().logPrint(keyToRemove + " vacated LUXURY spot in " + agent.getLocalName());
 			break;
 		case HANDICAP:
 			agent.setHandicapSpots(agent.getHandicapSpots() + 1);
+			Logger.getInstance().logPrint(keyToRemove + " vacated HANDICAP spot in " + agent.getLocalName());
 			break;
 		}
 	}
