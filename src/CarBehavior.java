@@ -123,7 +123,7 @@ public class CarBehavior extends ContractNetInitiator {
 	@Override
 	protected void handleAllResponses(Vector responses, Vector acceptances) {
 
-		int bestProposal = -1;
+		int bestProposal = Integer.MAX_VALUE;
 		int bestProposerI = 0;
 		AID bestProposer = null;
 		ACLMessage accept = null;
@@ -143,7 +143,8 @@ public class CarBehavior extends ContractNetInitiator {
 				StrictCarEvaluator eval = new StrictCarEvaluator(agent, getParkingLotProposal(msg));
 				int proposal = eval.evaluateProposal(msg);
 				
-				if((proposal != 0) && (proposal > bestProposal)) {
+				// Lower values are better since cost and distance are both best when minimised
+				if((proposal != 0) && (proposal < bestProposal)) {
 					bestProposal = proposal;
 					bestProposer = msg.getSender();
 					bestProposerI = i;

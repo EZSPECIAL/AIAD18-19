@@ -2,9 +2,10 @@
                TODO
 -----------------------------------
 
- - add different car behaviors (strict / lower cost / lower distance / mix of both)
- - test proposals / rejections / acceptances
+ - add flexible car behavior
+ - implement behaviors in code
+ - print parking lot proposal evaluation value
+ - config file predetermined agents
+ - test proposals / rejections / acceptances -> put in report
  - sanity check config file
- - populate world with new cars
  - iterated contract net
- - better world coords
