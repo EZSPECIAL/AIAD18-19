@@ -4,7 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
-public class ConfigParser {
+public class RandomConfigParser {
 	
 	// Configuration parameters indices
 	private static final int numCarAgentsI = 0;
@@ -49,17 +49,17 @@ public class ConfigParser {
 	public boolean luxurySpot;
 	public boolean handicapSpot;
 
-	private static ConfigParser singleton = new ConfigParser();
+	private static RandomConfigParser singleton = new RandomConfigParser();
 	
 	/**
 	 * Private constructor for singleton pattern.
 	 */
-	private ConfigParser() {}
+	private RandomConfigParser() {}
 	
 	/**
 	 * @return the singleton instance of the class
 	 */
-	public static ConfigParser getInstance( ) {
+	public static RandomConfigParser getInstance( ) {
 		return singleton;
 	}
 	

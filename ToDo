@@ -2,7 +2,11 @@
                TODO
 -----------------------------------
 
- - config file predetermined agents
+ - add new info to random option so agents known which method was used
+ - alter runAgents
+ - alter carAgent
+ - alter ParkingLotAgent
+ - command line arguments (random vs fixed / filepaths)
  - test handleFailure()
  - test proposals / rejections / acceptances -> put in report
  - sanity check config file

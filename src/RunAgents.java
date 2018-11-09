@@ -12,7 +12,11 @@ import jade.wrapper.*;
 
 public class RunAgents {
 
-	private static final String CONFIG_NAME = "config.csv";
+	private static final String RANDOM_CONFIG = "random.csv";
+	private static final String CAR_CONFIG = "cars.csv";
+	private static final String LOT_CONFIG = "lots.csv";
+	private static final boolean isRandom = true;
+	
 	private static final int regularSpotI = 5;
 	private static final int luxurySpotI = 6;
 	private static final int handicapSpotI = 7;
@@ -22,6 +26,8 @@ public class RunAgents {
 	private static ArrayList<Point> carCoords = new ArrayList<Point>();
 	private static ArrayList<AgentController> parkingLotAgents = new ArrayList<AgentController>();
 	private static ArrayList<AgentController> carAgents = new ArrayList<AgentController>();
+	private static ArrayList<Object[]> carConfigArgs;
+	private static ArrayList<Object[]> lotConfigArgs;
 	
 	// Queue of cars awaiting negotiation
 	private static LinkedBlockingQueue<String> waitingCars = new LinkedBlockingQueue<String>();
@@ -31,9 +37,14 @@ public class RunAgents {
 		// Init logging
 		Logger.getInstance().initLog(Logger.LogMethod.BOTH);
 		
-		// Parse config file
-		ConfigParser.getInstance().readConfig("./" + CONFIG_NAME);
-		ConfigParser.getInstance().printConfig();
+		// Parse config file according to selected method
+		if(isRandom) {
+			RandomConfigParser.getInstance().readConfig("./" + RANDOM_CONFIG);
+			RandomConfigParser.getInstance().printConfig();
+		} else {
+			carConfigArgs = FixedConfigParser.getInstance().readCarConfig("./" + CAR_CONFIG);
+			lotConfigArgs = FixedConfigParser.getInstance().readLotConfig("./" + LOT_CONFIG);
+		}
 		
 		// Create agents with randomised parameters
 		createAgents();
@@ -74,25 +85,41 @@ public class RunAgents {
 	}
 	
 	/**
-	 * Creates a car agent with randomised parameters and adds it to the queue.
+	 * Creates car agents using randomised parameters or fixed parameters read from config file
+	 * according to the command line options. Adds cars to the negotiation queue.
 	 * 
 	 * @param container agent container to create agent in
 	 */
 	private static void createCarAgents(ContainerController container) throws StaleProxyException {
 		
-		for(int i = 0; i < ConfigParser.getInstance().numCarAgents; i++) {
-			
-			// Generate car agent arguments
-			ArrayList<Integer> carArgs = generateCarAgent();
-			
-			Object[] carArgsObj = new Object[carArgs.size()];
-			for(int j = 0; j < carArgs.size(); j++) {
-				carArgsObj[j] = carArgs.get(j);
-			}
+		// Generate car agents with randomised parameters
+		if(isRandom) {
+			for(int i = 0; i < RandomConfigParser.getInstance().numCarAgents; i++) {
 
-			int carID = carAgents.size();
-			carAgents.add(container.createNewAgent("Car" + carID, "CarAgent", carArgsObj));
-			waitingCars.add("Car" + carID);
+				// Generate car agent arguments
+				ArrayList<Integer> carArgs = generateCarAgent();
+
+				Object[] carArgsObj = new Object[carArgs.size()];
+				for(int j = 0; j < carArgs.size(); j++) {
+					carArgsObj[j] = carArgs.get(j);
+				}
+
+				int carID = carAgents.size();
+				carAgents.add(container.createNewAgent("Car" + carID, "CarAgent", carArgsObj));
+				waitingCars.add("Car" + carID);
+			}
+		// Use fixed parameters read from config file
+		} else {
+			
+			for(int i = 0; i < carConfigArgs.size(); i++) {
+				
+				Object[] carArgsObj = carConfigArgs.get(i);
+				carCoords.add(new Point((int) carArgsObj[1], (int) carArgsObj[2])); // TODO hardcoded index
+				
+				int carID = carAgents.size();
+				carAgents.add(container.createNewAgent("Car" + carID, "CarAgent", carArgsObj));
+				waitingCars.add("Car" + carID);
+			}
 		}
 	}
 	
@@ -103,7 +130,7 @@ public class RunAgents {
 	 */
 	private static void createParkingLotAgents(ContainerController container) throws StaleProxyException {
 		
-		for(int i = 0; i < ConfigParser.getInstance().numParkingLots; i++) {
+		for(int i = 0; i < RandomConfigParser.getInstance().numParkingLots; i++) {
 			
 			// Generate car agent arguments
 			ArrayList<Integer> parkingLotArgs = generateParkingLotAgent();
@@ -128,7 +155,7 @@ public class RunAgents {
 		
 		ArrayList<Integer> args = new ArrayList<Integer>();
 		Random r = new Random();
-		ConfigParser config = ConfigParser.getInstance();
+		RandomConfigParser config = RandomConfigParser.getInstance();
 		
 		// Select random world coordinates within bounds
 		Point coords = new Point();
@@ -207,7 +234,7 @@ public class RunAgents {
 	
 		ArrayList<Integer> args = new ArrayList<Integer>();
 		Random r = new Random();
-		ConfigParser config = ConfigParser.getInstance();
+		RandomConfigParser config = RandomConfigParser.getInstance();
 		
 		// Select random world coordinates within bounds
 		Point coords = new Point();
