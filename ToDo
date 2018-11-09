@@ -2,8 +2,8 @@
                TODO
 -----------------------------------
 
- - print parking lot proposal evaluation value
  - config file predetermined agents
+ - test handleFailure()
  - test proposals / rejections / acceptances -> put in report
  - sanity check config file
  - iterated contract net

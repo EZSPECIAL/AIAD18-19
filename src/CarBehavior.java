@@ -145,11 +145,12 @@ public class CarBehavior extends ContractNetInitiator {
 				
 				// Lower values are better since cost and distance are both best when minimised
 				if((proposal != 0) && (proposal < bestProposal)) {
+					Logger.getInstance().logPrint("New best proposal by " + msg.getSender().getLocalName() + " evaluated at " + proposal);
 					bestProposal = proposal;
 					bestProposer = msg.getSender();
 					bestProposerI = i;
 					accept = reply;
-				}
+				} else Logger.getInstance().logPrint("Worse proposal by " + msg.getSender().getLocalName() + " evaluated at " + proposal);
 			}
 		}
 		
