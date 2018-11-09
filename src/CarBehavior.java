@@ -138,9 +138,9 @@ public class CarBehavior extends ContractNetInitiator {
 				reply.setPerformative(ACLMessage.REJECT_PROPOSAL);
 				acceptances.addElement(reply);
 
-				// TODO other behaviors
-				// TODO change thread name
-				StrictCarEvaluator eval = new StrictCarEvaluator(agent, getParkingLotProposal(msg));
+				// Evaluate proposal using the agent's evaluator (personality)
+				CarEvaluator eval = agent.getEval();
+				eval.setProposal(getParkingLotProposal(msg));
 				int proposal = eval.evaluateProposal(msg);
 				
 				// Lower values are better since cost and distance are both best when minimised

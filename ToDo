@@ -2,8 +2,6 @@
                TODO
 -----------------------------------
 
- - add flexible car behavior
- - implement behaviors in code
  - print parking lot proposal evaluation value
  - config file predetermined agents
  - test proposals / rejections / acceptances -> put in report

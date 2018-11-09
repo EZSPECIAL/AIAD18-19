@@ -21,8 +21,8 @@ public class Logger {
 	// Log management block
 	private static LogMethod logMethod = LogMethod.CONSOLE;
 	private static final String logFolder = "logFiles";
-	private static final String consoleLogFormat = "%-16s - %s\n";
-	private static final String fileLogFormat = "%s - %-16s - %s";
+	private static final String consoleLogFormat = "%-18s - %s\n";
+	private static final String fileLogFormat = "%s - %-18s - %s";
 	
 	/**
 	 * Private constructor for singleton pattern.

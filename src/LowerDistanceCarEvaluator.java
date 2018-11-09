@@ -8,10 +8,9 @@ public class LowerDistanceCarEvaluator extends CarEvaluator {
 	 * available without considering the hourly cost of the parking lot.
 	 * 
 	 * @param agent the evaluating car agent
-	 * @param proposal the parking lot proposal
 	 */
-	public LowerDistanceCarEvaluator(CarAgent agent, ParkingLotProposal proposal) {
-		super(agent, proposal);
+	public LowerDistanceCarEvaluator(CarAgent agent) {
+		super(agent);
 	}
 	
 	@Override

@@ -8,10 +8,9 @@ public class StrictCarEvaluator extends CarEvaluator {
 	 * cost possible by checking the combined value of each proposal.
 	 * 
 	 * @param agent the evaluating car agent
-	 * @param proposal the parking lot proposal
 	 */
-	public StrictCarEvaluator(CarAgent agent, ParkingLotProposal proposal) {
-		super(agent, proposal);
+	public StrictCarEvaluator(CarAgent agent) {
+		super(agent);
 	}
 	
 	@Override

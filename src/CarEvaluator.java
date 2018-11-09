@@ -12,11 +12,9 @@ public abstract class CarEvaluator {
 	 * parking lot proposals.
 	 * 
 	 * @param agent the evaluating car agent
-	 * @param proposal the parking lot proposal
 	 */
-	public CarEvaluator(CarAgent agent, ParkingLotProposal proposal) {
+	public CarEvaluator(CarAgent agent) {
 		this.agent = agent;
-		this.proposal = proposal;
 	}
 
 	/**
@@ -37,5 +35,12 @@ public abstract class CarEvaluator {
 	 */
 	protected int distanceToParking(Point carCoords, Point parkingLotCoords) {
 		return (int) carCoords.distance(parkingLotCoords);
+	}
+
+	/**
+	 * @param proposal the parking lot proposal to set
+	 */
+	public void setProposal(ParkingLotProposal proposal) {
+		this.proposal = proposal;
 	}
 }

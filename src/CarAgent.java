@@ -2,6 +2,7 @@ import java.awt.Point;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Random;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import jade.core.AID;
@@ -25,7 +26,7 @@ public class CarAgent extends Agent {
 	private static final int luxurySpotI = 6;
 	private static final int handicapSpotI = 7;
 	
-	// Car agent paremeters
+	// Car agent parameters
 	private Point coords;
 	private int maxHourlyCost;
 	private int maxDistance;
@@ -35,6 +36,7 @@ public class CarAgent extends Agent {
 	private boolean handicapSpot;
 	
 	private String localName;
+	private CarEvaluator eval;
 	
 	public void setup() {
 		
@@ -139,6 +141,38 @@ public class CarAgent extends Agent {
 		regularSpot = ((int) args[regularSpotI] != 0) ? true : false;
 		luxurySpot = ((int) args[luxurySpotI] != 0) ? true : false;
 		handicapSpot = ((int) args[handicapSpotI] != 0) ? true : false;
+		
+		// Select car evaluator
+		eval = selectCarEvaluator();
+	}
+	
+	/**
+	 * Selects at random a car evaluator to use in the negotiation phase.
+	 * 
+	 * @return the evaluator object to use
+	 */
+	private CarEvaluator selectCarEvaluator() {
+		
+		Random r = new Random();
+		int evalIndex = r.nextInt(4); // 0 to 3
+		
+		String currName = Thread.currentThread().getName();
+		switch(evalIndex) {
+		case 0:
+			Thread.currentThread().setName("Strict" + currName);
+			return new StrictCarEvaluator(this);
+		case 1:
+			Thread.currentThread().setName("LowerCost" + currName);
+			return new LowerCostCarEvaluator(this);
+		case 2:
+			Thread.currentThread().setName("LowerDistance" + currName);
+			return new LowerDistanceCarEvaluator(this);
+		case 3:
+			Thread.currentThread().setName("Flexible" + currName);
+			return new FlexibleCarEvaluator(this);
+		default:
+			return new StrictCarEvaluator(this);
+		}
 	}
 	
 	/**
@@ -204,5 +238,12 @@ public class CarAgent extends Agent {
 	 */
 	public boolean isHandicapSpot() {
 		return handicapSpot;
+	}
+
+	/**
+	 * @return the evaluator object used to evaluate proposals
+	 */
+	public CarEvaluator getEval() {
+		return eval;
 	}
 }
