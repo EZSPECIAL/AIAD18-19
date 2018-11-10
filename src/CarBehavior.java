@@ -44,6 +44,11 @@ public class CarBehavior extends ContractNetInitiator {
 			System.exit(1);
 		}
 		
+		// Check if all negotiations have ended
+		if(queue.size() == 0) {
+			Logger.getInstance().logPrint("Waiting cars queue emptied, no more negotiations to do!");
+		}
+		
 		// Notify all threads waiting for queue
 		synchronized(queue) {
 			queue.notifyAll();

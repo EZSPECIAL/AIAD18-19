@@ -2,7 +2,6 @@
                TODO
 -----------------------------------
 
- - command line arguments (random vs fixed / filepaths)
  - test handleFailure()
  - test proposals / rejections / acceptances -> put in report
  - sanity check config file

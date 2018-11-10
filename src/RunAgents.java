@@ -12,10 +12,16 @@ import jade.wrapper.*;
 
 public class RunAgents {
 
-	private static final String RANDOM_CONFIG = "random.csv";
-	private static final String CAR_CONFIG = "cars.csv";
-	private static final String LOT_CONFIG = "lots.csv";
-	private static final boolean isRandom = false;
+	private static String randomConfigPath;
+	private static String carConfigPath;
+	private static String lotConfigPath;
+	private static boolean isRandom;
+	
+	// Command line arguments indices
+	private static final int configTypeI = 0;
+	private static final int randomConfigI = 1;
+	private static final int carConfigI = 1;
+	private static final int lotConfigI = 2;
 	
 	// Config indices
 	private static final int fixedXCoordI = 1;
@@ -40,17 +46,79 @@ public class RunAgents {
 		// Init logging
 		Logger.getInstance().initLog(Logger.LogMethod.BOTH);
 		
-		// Parse config file according to selected method
+		// Parse config file according to selected method by command line arguments
+		parseCmdArgs(args);
 		if(isRandom) {
-			RandomConfigParser.getInstance().readConfig("./" + RANDOM_CONFIG);
+			RandomConfigParser.getInstance().readConfig(randomConfigPath);
 			RandomConfigParser.getInstance().printConfig();
 		} else {
-			carConfigArgs = FixedConfigParser.getInstance().readCarConfig("./" + CAR_CONFIG);
-			lotConfigArgs = FixedConfigParser.getInstance().readLotConfig("./" + LOT_CONFIG);
+			carConfigArgs = FixedConfigParser.getInstance().readCarConfig(carConfigPath);
+			lotConfigArgs = FixedConfigParser.getInstance().readLotConfig(lotConfigPath);
 		}
 		
 		// Create agents with randomised parameters
 		createAgents();
+	}
+	
+	/**
+	 * Parse command line arguments to see if user wants randomised parameters or
+	 * fixed parameters read from config files.
+	 * 
+	 * @param args the command line arguments
+	 */
+	private static void parseCmdArgs(String[] args) {
+		
+		// Check minimum args are present
+		if(args.length < 2) {
+			printUsage();
+			System.exit(0);
+		}
+	
+		// Parse config type
+		String configType = args[configTypeI];
+		
+		switch(configType.toLowerCase()) {
+		case "random":
+			isRandom = true;
+			break;
+		case "fixed":
+			isRandom = false;
+			break;
+		default:
+			printUsage();
+			System.exit(0);
+			break;
+		}
+		
+		// Parse config paths
+		if(isRandom) {
+			randomConfigPath = args[randomConfigI];
+		} else {
+			
+			// Check minimum args are present
+			if(args.length < 3) {
+				printUsage();
+				System.exit(0);
+			}
+			
+			carConfigPath = args[carConfigI];
+			lotConfigPath = args[lotConfigI];
+		}
+	}
+	
+	/**
+	 * Prints program usage with examples.
+	 */
+	private static void printUsage() {
+		
+		Logger logger = Logger.getInstance();
+		
+		logger.logPrint("Usage:");
+		logger.logPrint("\t java RunAgents RANDOM <configFilepath>");
+		logger.logPrint("\t java RunAgents FIXED <carConfigFilepath> <lotConfigFilePath>");
+		logger.logPrint("Examples:");
+		logger.logPrint("\t java RunAgents RANDOM ./random.csv");
+		logger.logPrint("\t java RunAgents FIXED ./cars.csv ./lots.csv");
 	}
 
 	/**
