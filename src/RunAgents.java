@@ -15,8 +15,11 @@ public class RunAgents {
 	private static final String RANDOM_CONFIG = "random.csv";
 	private static final String CAR_CONFIG = "cars.csv";
 	private static final String LOT_CONFIG = "lots.csv";
-	private static final boolean isRandom = true;
+	private static final boolean isRandom = false;
 	
+	// Config indices
+	private static final int fixedXCoordI = 1;
+	private static final int fixedYCoordI = 2;
 	private static final int regularSpotI = 5;
 	private static final int luxurySpotI = 6;
 	private static final int handicapSpotI = 7;
@@ -114,9 +117,16 @@ public class RunAgents {
 			for(int i = 0; i < carConfigArgs.size(); i++) {
 				
 				Object[] carArgsObj = carConfigArgs.get(i);
-				carCoords.add(new Point((int) carArgsObj[1], (int) carArgsObj[2])); // TODO hardcoded index
+				Point carPoint = new Point((int) carArgsObj[fixedXCoordI], (int) carArgsObj[fixedYCoordI]);
+				
+				// Check if coordinates overlap other agents
+				if(carCoords.contains(carPoint) || parkingLotCoords.contains(carPoint)) {
+					Logger.getInstance().logPrint("Car coords overlap! (" + carPoint.x + ", " + carPoint.y + ")");
+					System.exit(1);
+				}
 				
 				int carID = carAgents.size();
+				carCoords.add(carPoint);
 				carAgents.add(container.createNewAgent("Car" + carID, "CarAgent", carArgsObj));
 				waitingCars.add("Car" + carID);
 			}
@@ -124,23 +134,45 @@ public class RunAgents {
 	}
 	
 	/**
-	 * Creates a parking lot agent with randomised parameters.
+	 * Creates parking lot agents using randomised parameters or fixed parameters read from config file
+	 * according to the command line options.
 	 * 
 	 * @param container agent container to create agent in
 	 */
 	private static void createParkingLotAgents(ContainerController container) throws StaleProxyException {
 		
-		for(int i = 0; i < RandomConfigParser.getInstance().numParkingLots; i++) {
-			
-			// Generate car agent arguments
-			ArrayList<Integer> parkingLotArgs = generateParkingLotAgent();
-			
-			Object[] parkingLotArgsObj = new Object[parkingLotArgs.size()];
-			for(int j = 0; j < parkingLotArgs.size(); j++) {
-				parkingLotArgsObj[j] = parkingLotArgs.get(j);
-			}
+		// Generate parking lot agents with randomised parameters
+		if(isRandom) {
+			for(int i = 0; i < RandomConfigParser.getInstance().numParkingLots; i++) {
 
-			parkingLotAgents.add(container.createNewAgent("ParkingLot" + parkingLotAgents.size(), "ParkingLotAgent", parkingLotArgsObj));
+				// Generate car agent arguments
+				ArrayList<Integer> parkingLotArgs = generateParkingLotAgent();
+
+				Object[] parkingLotArgsObj = new Object[parkingLotArgs.size()];
+				for(int j = 0; j < parkingLotArgs.size(); j++) {
+					parkingLotArgsObj[j] = parkingLotArgs.get(j);
+				}
+
+				parkingLotAgents.add(container.createNewAgent("ParkingLot" + parkingLotAgents.size(), "ParkingLotAgent", parkingLotArgsObj));
+			}
+		// Use fixed parameters read from config file
+		} else {
+			
+			for(int i = 0; i < lotConfigArgs.size(); i++) {
+				
+				Object[] parkingLotArgsObj = lotConfigArgs.get(i);
+				Point lotPoint = new Point((int) parkingLotArgsObj[fixedXCoordI], (int) parkingLotArgsObj[fixedYCoordI]);
+				
+				// Check if coordinates overlap other agents
+				if(carCoords.contains(lotPoint) || parkingLotCoords.contains(lotPoint)) {
+					Logger.getInstance().logPrint("Parking lot coords overlap! (" + lotPoint.x + ", " + lotPoint.y + ")");
+					System.exit(1);
+				}
+				
+				parkingLotCoords.add(lotPoint);
+				parkingLotAgents.add(container.createNewAgent("ParkingLot" + parkingLotAgents.size(), "ParkingLotAgent", parkingLotArgsObj));
+			}
+			
 		}
 	}
 	
@@ -156,6 +188,9 @@ public class RunAgents {
 		ArrayList<Integer> args = new ArrayList<Integer>();
 		Random r = new Random();
 		RandomConfigParser config = RandomConfigParser.getInstance();
+		
+		// Config type
+		args.add(0);
 		
 		// Select random world coordinates within bounds
 		Point coords = new Point();
@@ -235,6 +270,9 @@ public class RunAgents {
 		ArrayList<Integer> args = new ArrayList<Integer>();
 		Random r = new Random();
 		RandomConfigParser config = RandomConfigParser.getInstance();
+		
+		// Config type
+		args.add(0);
 		
 		// Select random world coordinates within bounds
 		Point coords = new Point();

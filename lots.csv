@@ -5,6 +5,5 @@
 # 4 - parking lot handicap spots
 # 5 - parking lot hourly cost
 # 6 - parking lot luxury spot additional cost %
-# 7 - regular-luxury-handicap spot booleans
-10, 5, 30, 5, 5, 3, 120, 111
-12, 4, 20, 3, 0, 4, 110, 110
+10, 5, 30, 5, 5, 3, 120
+12, 4, 20, 3, 0, 4, 110

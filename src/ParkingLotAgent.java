@@ -14,18 +14,29 @@ public class ParkingLotAgent extends Agent {
 	private static final long serialVersionUID = -144714414530581727L;
 	private static final int numThreads = 50;
 	
-	// Parking lot agent argument indices
-	private static final int coordsXI = 0;
-	private static final int coordsYI = 1;
-	private static final int spotsI = 2;
-	private static final int regularPercentI = 3;
-	private static final int luxuryPercentI = 4;
-	private static final int handicapPercentI = 5;
-	private static final int hourlyCostI = 6;
-	private static final int luxuryCostPercentI = 7;
-	private static final int regularSpotI = 8;
-	private static final int luxurySpotI = 9;
-	private static final int handicapSpotI = 10;
+	// Parking lot agent random config argument indices
+	private static final int configTypeI = 0;
+	private static final int coordsXI = 1;
+	private static final int coordsYI = 2;
+	private static final int spotsI = 3;
+	private static final int regularPercentI = 4;
+	private static final int luxuryPercentI = 5;
+	private static final int handicapPercentI = 6;
+	private static final int hourlyCostI = 7;
+	private static final int luxuryCostPercentI = 8;
+	private static final int regularSpotI = 9;
+	private static final int luxurySpotI = 10;
+	private static final int handicapSpotI = 11;
+	
+	// Parking lot agent fixed config argument indices
+	private static final int regularSpotsI = 3;
+	private static final int luxurySpotsI = 4;
+	private static final int handicapSpotsI = 5;
+	private static final int fixedHourlyCostI = 6;
+	private static final int fixedLuxuryCostPercentI = 7;
+
+	// Parking lot constants
+	private static final int randomConfig = 0;
 	
 	// Parking lot parameters
 	private Point coords;
@@ -41,7 +52,9 @@ public class ParkingLotAgent extends Agent {
 	
 	public void setup() {
 
-		this.initArgs();
+		if((int) this.getArguments()[configTypeI] == randomConfig) {
+			this.initRandomArgs();
+		} else this.initFixedArgs();
 		this.logParkingLotAgent();
 		this.contractNetRespond();
 	}
@@ -61,7 +74,7 @@ public class ParkingLotAgent extends Agent {
 	/**
 	 * Initialises parking lot agent with generated randomised parameters.
 	 */
-	private void initArgs() {
+	private void initRandomArgs() {
 		
 		// Fetch arguments and convert to integer
 		Object[] args = this.getArguments();
@@ -115,6 +128,24 @@ public class ParkingLotAgent extends Agent {
 			else if(luxurySpot) luxurySpots -= roundError;
 			else if(handicapSpot) handicapSpots -= roundError;
 		}
+	}
+	
+	/**
+	 * Initialises parking lot agent with fixed parameters read from config file.
+	 */
+	private void initFixedArgs() {
+		
+		// Fetch arguments and convert to integer
+		Object[] args = this.getArguments();
+		
+		// Assign values
+		coords = new Point((int) args[coordsXI], (int) args[coordsYI]);
+		spots = (int) args[regularSpotsI] + (int) args[luxurySpotsI] + (int) args[handicapSpotsI];
+		regularSpots = (int) args[regularSpotsI];
+		luxurySpots = (int) args[luxurySpotsI];
+		handicapSpots = (int) args[handicapSpotsI];
+		hourlyCost = (int) args[fixedHourlyCostI];
+		luxuryCostPercent = (int) args[fixedLuxuryCostPercentI];
 	}
 	
 	/**

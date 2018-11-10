@@ -17,14 +17,19 @@ public class CarAgent extends Agent {
 	private static final long serialVersionUID = -3463154810903197092L;
 	
 	// Car agent argument indices
-	private static final int coordsXI = 0;
-	private static final int coordsYI = 1;
-	private static final int maxHourlyCostI = 2;
-	private static final int maxDistanceI = 3;
-	private static final int hoursNeededI = 4;
-	private static final int regularSpotI = 5;
-	private static final int luxurySpotI = 6;
-	private static final int handicapSpotI = 7;
+	private static final int configTypeI = 0;
+	private static final int coordsXI = 1;
+	private static final int coordsYI = 2;
+	private static final int maxHourlyCostI = 3;
+	private static final int maxDistanceI = 4;
+	private static final int hoursNeededI = 5;
+	private static final int regularSpotI = 6;
+	private static final int luxurySpotI = 7;
+	private static final int handicapSpotI = 8;
+	private static final int evaluatorI = 9;
+	
+	// Car constants
+	private static final int randomConfig = 0;
 	
 	// Car agent parameters
 	private Point coords;
@@ -40,7 +45,9 @@ public class CarAgent extends Agent {
 	
 	public void setup() {
 		
-		this.initArgs();
+		// Check type of config file
+		this.initArgs(((int) this.getArguments()[configTypeI] == randomConfig) ? true : false);
+
 		this.logCarAgent();
 		
 		try {
@@ -124,9 +131,12 @@ public class CarAgent extends Agent {
 	}
 	
 	/**
-	 * Initialises car agent with generated randomised parameters.
+	 * Initialises car agent. May randomise parameters or use the provided values
+	 * if using fixed config parameters.
+	 * 
+	 * @param isRandom whether the agent generation is randomised or not
 	 */
-	private void initArgs() {
+	private void initArgs(boolean isRandom) {
 		
 		localName = this.getAID().getLocalName();
 		
@@ -143,18 +153,20 @@ public class CarAgent extends Agent {
 		handicapSpot = ((int) args[handicapSpotI] != 0) ? true : false;
 		
 		// Select car evaluator
-		eval = selectCarEvaluator();
+		eval = selectCarEvaluator(isRandom);
 	}
-	
+
 	/**
-	 * Selects at random a car evaluator to use in the negotiation phase.
+	 * Selects a car evaluator to use in the negotiation phase. May randomise
+	 * the choice or use a provided value if using fixed config parameters.
 	 * 
+	 * @param isRandom whether the agent generation is randomised or not
 	 * @return the evaluator object to use
 	 */
-	private CarEvaluator selectCarEvaluator() {
+	private CarEvaluator selectCarEvaluator(boolean isRandom) {
 		
 		Random r = new Random();
-		int evalIndex = r.nextInt(4); // 0 to 3
+		int evalIndex = isRandom ? r.nextInt(4) : (int) this.getArguments()[evaluatorI]; // 0 to 3
 		
 		String currName = Thread.currentThread().getName();
 		switch(evalIndex) {

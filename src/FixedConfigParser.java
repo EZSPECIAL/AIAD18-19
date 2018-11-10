@@ -24,7 +24,6 @@ public class FixedConfigParser {
 	private static final int lotHandicapSpotsI = 4;
 	private static final int lotHourlyCostI = 5;
 	private static final int lotLuxurySpotCostPercentI = 6;
-	private static final int lotEnabledSpotTypesI = 7;
 
 	private static FixedConfigParser singleton = new FixedConfigParser();
 	
@@ -75,7 +74,7 @@ public class FixedConfigParser {
 			}
 
 			// Car parameter parsing
-			Object[] lotArgs = new Object[11];
+			Object[] lotArgs = new Object[8];
 			lotArgs[0] = 1;
 			lotArgs[lotXCoordI + 1] = configToInt(args[lotXCoordI]);
 			lotArgs[lotYCoordI + 1] = configToInt(args[lotYCoordI]);
@@ -84,12 +83,6 @@ public class FixedConfigParser {
 			lotArgs[lotHandicapSpotsI + 1] = configToInt(args[lotHandicapSpotsI]);
 			lotArgs[lotHourlyCostI + 1] = configToInt(args[lotHourlyCostI]);
 			lotArgs[lotLuxurySpotCostPercentI + 1] = configToInt(args[lotLuxurySpotCostPercentI]);
-
-			// Spot types parsing
-			char[] spotTypeBooleans = args[lotEnabledSpotTypesI].toCharArray();
-			lotArgs[lotEnabledSpotTypesI  + 1] = Character.getNumericValue(spotTypeBooleans[0]);
-			lotArgs[lotEnabledSpotTypesI  + 2] = Character.getNumericValue(spotTypeBooleans[1]);
-			lotArgs[lotEnabledSpotTypesI  + 3] = Character.getNumericValue(spotTypeBooleans[2]);
 
 			lots.add(lotArgs);
 		}
