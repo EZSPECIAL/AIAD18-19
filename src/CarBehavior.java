@@ -118,9 +118,7 @@ public class CarBehavior extends ContractNetInitiator {
 	
 	@Override
 	protected void handleFailure(ACLMessage failure) {
-		
-		// TODO can all fail? queue removal won't work
-		
+
 		if(failure.getSender().equals(myAgent.getAMS())) Logger.getInstance().logPrint("Responder does not exist!");
 		else Logger.getInstance().logPrint(failure.getSender().getLocalName() + " failed!");
 	}
