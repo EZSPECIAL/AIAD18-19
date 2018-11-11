@@ -1,0 +1,10 @@
+# 0 - x coord
+# 1 - y coord
+# 2 - car max hourly cost
+# 3 - car max distance
+# 4 - car hours needed
+# 5 - regular-luxury-handicap spot booleans
+# 6 - evaluator (STRICT, LOWERCOST, LOWERDIST, FLEXIBLE)
+0, 0, 4, 10, 2, 100, STRICT
+0, 0, 4, 10, 2, 100, LOWERDIST
+0, 0, 2, 10, 2, 100, LOWERCOST

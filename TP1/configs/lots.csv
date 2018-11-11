@@ -1,0 +1,9 @@
+# 0 - x coord
+# 1 - y coord
+# 2 - parking lot regular spots
+# 3 - parking lot luxury spots
+# 4 - parking lot handicap spots
+# 5 - parking lot hourly cost
+# 6 - parking lot luxury spot additional cost %
+10, 5, 30, 5, 5, 4, 120
+100, 100, 20, 3, 0, 1, 110
