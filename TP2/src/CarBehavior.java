@@ -109,7 +109,7 @@ public class CarBehavior extends ContractNetInitiator {
 		int zone = (coords.x / 5 + 1) + (coords.y / 5 * 3);
 		
 		Logger.getInstance().setCarCSVData(zone, agent.getMaxHourlyCost(), agent.getMaxDistance(), agent.getEval().getType(), satisfaction);
-		Logger.getInstance().csvWrite(false);
+		Logger.getInstance().csvWrite();
 	}
 	
 	/**

@@ -49,8 +49,6 @@ public class Logger {
 		
 		createDirIfNotExists("./" + logFolder);
 	    Logger.logMethod = logMethod;
-	    
-	    csvWrite(true);
 	}
 	
 	/**
@@ -155,7 +153,7 @@ public class Logger {
 	 * 
 	 * @param isHeader whether to print header or not
 	 */
-	public synchronized void csvWrite(boolean isHeader) {
+	public synchronized void csvWrite() {
 
 		createDirIfNotExists("./" + logFolder);
 
@@ -163,12 +161,24 @@ public class Logger {
 		String filepath = "./" + logFolder + "/log.csv";
 		File toCreate = new File(filepath);
 		Path toWrite = Paths.get(filepath);
-
+		
 		List<String> lines;
-		if(isHeader) {
+		if(!toCreate.exists()) {
 			lines = Arrays.asList(writeHeader());
-		} else lines = Arrays.asList(parkData + carData);
+			
+			// Create file only if it doesn't exist and append new lines to it
+			try {
+				toCreate.createNewFile();
+				Files.write(toWrite, lines, Charset.forName("UTF-8"), StandardOpenOption.APPEND);
+			} catch(IOException e) {
+				System.out.println("IO exception on log write");
+				e.printStackTrace();
+			}
+			
+		}
 
+		lines = Arrays.asList(parkData + carData);
+		
 		// Create file only if it doesn't exist and append new lines to it
 		try {
 			toCreate.createNewFile();
