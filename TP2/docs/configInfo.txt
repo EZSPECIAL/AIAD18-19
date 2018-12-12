@@ -1,0 +1,10 @@
+RUN1
+	Zone1 / Cheap
+	Zone1 / Moderate
+	Zone9 / Moderate
+
+RUN2
+    Zone1 / Cheap
+	Zone5 / Premium
+	Zone5 / Cheap
+	Zone9 / Moderate
