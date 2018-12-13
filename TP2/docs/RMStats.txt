@@ -1,0 +1,15 @@
+Linear Regression
+    Root Mean Squared Error        = 0.274
+	Root Relative Squared Error    = 0.866
+
+PolynomialRegression
+    Root Mean Squared Error        = 55.294
+	Root Relative Squared Error    = 174.742
+
+NeuralNet
+    Root Mean Squared Error        = 0.236
+	Root Relative Squared Error    = 0.744
+
+DeepLearning
+    Root Mean Squared Error        = 0.266
+	Root Relative Squared Error    = 0.841
