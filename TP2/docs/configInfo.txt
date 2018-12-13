@@ -1,13 +1,13 @@
 RUN1
-	Zone1 / Cheap
-	Zone1 / Moderate
-	Zone9 / Moderate
+    Zone1 / Cheap
+    Zone1 / Moderate
+    Zone9 / Moderate
 
 RUN2
     Zone1 / Cheap
-	Zone5 / Premium
-	Zone5 / Cheap
-	Zone9 / Moderate
+    Zone5 / Premium
+    Zone5 / Cheap
+    Zone9 / Moderate
 
 RUN3
     Zone4 / Premium
@@ -33,3 +33,32 @@ RUN6
     Zone3 / Cheap
     Zone7 / Moderate
     Zone7 / Premium
+
+RUN7
+    Zone2 / Cheap
+    Zone2 / Moderate
+    Zone2 / Cheap
+    Zone8 / Moderate
+    Zone8 / Premium
+
+RUN8
+    Zone4 / Cheap
+    Zone4 / Premium
+    Zone5 / Cheap
+    Zone5 / Moderate
+    Zone6 / Moderate
+    Zone6 / Premium
+
+RUN9
+    Zone8 / Cheap
+    Zone8 / Moderate
+    Zone2 / Premium
+    Zone2 / Cheap
+
+RUN10
+    Zone2 / Cheap
+    Zone2 / Moderate
+    Zone7 / Moderate
+    Zone7 / Premium
+    Zone9 / Moderate
+    Zone9 / Cheap
